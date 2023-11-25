@@ -1,0 +1,2 @@
+recursive-include optimx/static *
+recursive-include optimx/templates *
