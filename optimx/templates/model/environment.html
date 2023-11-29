@@ -18,7 +18,10 @@
                         <td>pid selected</td>
                         <td>{{process_environ.recom_pid_select}}</td>
                     </tr>
-
+                    <tr>
+                        <td>recom workers</td>
+                        <td>{{process_environ.recom_workers}}</td>
+                    </tr>
                     {% for var_key, value in process_environ.recom_pid_process.items() %}
                         <tr>
                             <td>{{var_key}}</td>
@@ -46,7 +49,10 @@
                         <td>pid selected</td>
                         <td>{{process_environ.reward_pid_select}}</td>
                     </tr>
-
+                    <tr>
+                        <td>reward workers</td>
+                        <td>{{process_environ.reward_workers}}</td>
+                    </tr>
                     {% for var_key, value in process_environ.reward_pid_process.items() %}
                         <tr>
                             <td>{{var_key}}</td>

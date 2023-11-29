@@ -23,6 +23,7 @@ from optimx.log import Logs
 from .utils import cat_file_content
 
 from flask_httpauth import HTTPBasicAuth
+from mlopskit.pipe import ServiceMgr
 
 auth = HTTPBasicAuth()
 logger = logging.getLogger("optimx.web")
@@ -415,7 +416,8 @@ def model_details(modelname, section, env, version):
                 penviron["recom_pid_list"] = pid_list
                 pid_select = random.choice(pid_list)
                 pid_info = current_service.get_process(int(pid_select))
-                pid_info["recom_pid_select"] = pid_select
+                penviron["recom_pid_select"] = pid_select
+                penviron["recom_workers"] = max(0,len(pid_list)-1)
                 penviron["recom_pid_process"]  =pid_info
             
         if len(rewardserver_ports_list) > 0:
@@ -424,14 +426,15 @@ def model_details(modelname, section, env, version):
             pid_list = current_service.get_pid_from_port_node(reward_port)
             if len(pid_list)>0:
                 penviron["reward_pid_list"] = pid_list
+                penviron["reward_workers"] = max(0,len(pid_list)-1)
                 pid_select = random.choice(pid_list)
                 pid_info = current_service.get_process(int(pid_select))
-                pid_info["reward_pid_select"] = pid_select
+                penviron["reward_pid_select"] = pid_select
                 penviron["reward_pid_process"]  =pid_info
         
         context["process_environ"] = penviron
 
-    if section == "environment2":
+    elif section == "environment2":
         penviron = {}
         recomserver_ports_list = model_details["recomserver_ports"]
         rewardserver_ports_list = model_details["rewardserver_ports"]
@@ -511,6 +514,30 @@ def model_details(modelname, section, env, version):
                 context["content_model"] = "nulls"
 
         context["filename"] = filename
+    elif section=="overview":
+        recomserver_ports_list = model_details["recomserver_ports"]
+        rewardserver_ports_list = model_details["rewardserver_ports"]
+        context["recom_status"] = "not deployed"
+        if len(recomserver_ports_list) > 0:
+            recom_port = recomserver_ports_list[0]
+            pid_list = current_service.get_pid_from_port_node(recom_port)
+            if len(pid_list)>0:
+                context["recom_status"] = "running"
+            else:
+                context["recom_status"] = "failed"
+
+        context["reward_status"] = "not deployed"
+        if len(rewardserver_ports_list) > 0:
+            reward_port = rewardserver_ports_list[0]
+            pid_list = current_service.get_pid_from_port_node(reward_port)
+            if len(pid_list)>0:
+                context["reward_status"] = "running"
+            else:
+                context["reward_status"] = "failed"
+    elif section=="restart":
+        test=ServiceMgr([modelname],env=env)
+        test.start_service()
+        
     return render_template("model/%s.html" % section, **context)
 
 

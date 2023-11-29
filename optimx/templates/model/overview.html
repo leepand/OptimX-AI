@@ -40,15 +40,38 @@
                     <tr>
                         <td>Recomserver Ports</td>
                         <td>{{ model_details["recomserver_ports"] }}</td>
+                        <td>
+                            {% if recom_status=="running" %}
+                                <span class="badge">{{recom_status}}</span>
+                            {% else %}
+                                <span class="badge all">{{recom_status}}</span>
+                            {% endif %}
+                        </td>
+                        <td><a href="{{ url_for(".model_details", modelname=model_info.name,
+                            section="restart",
+                            env=env,
+                            version=current_version) }}">restart</a></td>
+                        <td>log</td>
                     </tr>
                     <tr>
                         <td>Rewardserver Ports</td>
                         <td>{{ model_details["rewardserver_ports"] }}</td>
+                        <td>
+                            {% if reward_status=="running" %}
+                                <span class="badge">{{reward_status}}</span>
+                            {% else %}
+                                <span class="badge all">{{reward_status}}</span>
+                            {% endif %}
+                        </td>
+                        <td><a href="{{ url_for(".model_details", modelname=model_info.name,
+                            section="restart",
+                            env=env,
+                            version=current_version) }}">restart</a></td>
+                        <td>log</td>
                     </tr>
                     
                 </table>
-            </td>
-            
+            </td>  
         </tr>
     </table>
 {% endblock %}
