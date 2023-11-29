@@ -83,6 +83,7 @@ def get_models(envs=envs, filters=["dev", "prod", "preprod"]):
             # crc = filemd5(p)
             crc = "crc_dir"
             return {
+                "file_path": str(p),
                 "filename": fname,
                 "modified_at": dtmod,
                 "size": human_readable_file_size(p.stat().st_size),

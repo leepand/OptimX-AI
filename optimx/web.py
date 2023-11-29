@@ -2,6 +2,7 @@ import logging
 import psutil
 import socket
 import re
+import os
 from datetime import datetime, timedelta
 import uuid
 import locale
@@ -16,6 +17,8 @@ from flask import (
     current_app,
     g,
 )
+from pathlib import Path
+
 from werkzeug.local import LocalProxy
 from optimx.helpers import socket_families, socket_types
 from optimx.model_process import compare_versions
@@ -412,26 +415,26 @@ def model_details(modelname, section, env, version):
             recom_port = recomserver_ports_list[0]
             penviron["recom_port"] = recom_port
             pid_list = current_service.get_pid_from_port_node(recom_port)
-            if len(pid_list)>0:
+            if len(pid_list) > 0:
                 penviron["recom_pid_list"] = pid_list
                 pid_select = random.choice(pid_list)
                 pid_info = current_service.get_process(int(pid_select))
                 penviron["recom_pid_select"] = pid_select
-                penviron["recom_workers"] = max(0,len(pid_list)-1)
-                penviron["recom_pid_process"]  =pid_info
-            
+                penviron["recom_workers"] = max(0, len(pid_list) - 1)
+                penviron["recom_pid_process"] = pid_info
+
         if len(rewardserver_ports_list) > 0:
             reward_port = rewardserver_ports_list[0]
             penviron["reward_port"] = reward_port
             pid_list = current_service.get_pid_from_port_node(reward_port)
-            if len(pid_list)>0:
+            if len(pid_list) > 0:
                 penviron["reward_pid_list"] = pid_list
-                penviron["reward_workers"] = max(0,len(pid_list)-1)
+                penviron["reward_workers"] = max(0, len(pid_list) - 1)
                 pid_select = random.choice(pid_list)
                 pid_info = current_service.get_process(int(pid_select))
                 penviron["reward_pid_select"] = pid_select
-                penviron["reward_pid_process"]  =pid_info
-        
+                penviron["reward_pid_process"] = pid_info
+
         context["process_environ"] = penviron
 
     elif section == "environment2":
@@ -511,17 +514,17 @@ def model_details(modelname, section, env, version):
             try:
                 context["content_model"] = cat_file_content(filename)
             except:
-                context["content_model"] = "nulls"
+                context["content_model"] = str(traceback.format_exc())
 
         context["filename"] = filename
-    elif section=="overview":
+    elif section == "overview":
         recomserver_ports_list = model_details["recomserver_ports"]
         rewardserver_ports_list = model_details["rewardserver_ports"]
         context["recom_status"] = "not deployed"
         if len(recomserver_ports_list) > 0:
             recom_port = recomserver_ports_list[0]
             pid_list = current_service.get_pid_from_port_node(recom_port)
-            if len(pid_list)>0:
+            if len(pid_list) > 0:
                 context["recom_status"] = "running"
             else:
                 context["recom_status"] = "failed"
@@ -530,14 +533,31 @@ def model_details(modelname, section, env, version):
         if len(rewardserver_ports_list) > 0:
             reward_port = rewardserver_ports_list[0]
             pid_list = current_service.get_pid_from_port_node(reward_port)
-            if len(pid_list)>0:
+            if len(pid_list) > 0:
                 context["reward_status"] = "running"
             else:
                 context["reward_status"] = "failed"
-    elif section=="restart":
-        test=ServiceMgr([modelname],env=env)
+    elif section == "restart":
+        test = ServiceMgr([modelname], env=env)
         test.start_service()
-        
+        section = "overview"
+
+    elif section == "model_logs":
+        try:
+            base_path = model_details["model_version_list_details"].get("file_path", "")
+            log_path = os.path.join(base_path, "log") + os.sep
+            if filename == "recom_log":
+                logs = Path(log_path).glob("*recom*.log")
+            else:
+                logs = Path(log_path).glob("*reward*.log")
+            file_contents = []
+            for _log in logs:
+                file_contents.append(cat_file_content(_log))
+            context["content_model"] = "\n".join(file_contents)
+        except:
+            context["content_model"] = str(traceback.format_exc())
+        section = "viewmodel"
+
     return render_template("model/%s.html" % section, **context)
 
 
