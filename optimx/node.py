@@ -8,7 +8,7 @@ import zerorpc
 from optimx.log import Logs
 from optimx.helpers import socket_families, socket_types
 from optimx.net import get_interface_addresses, NetIOCounters
-from optimx.utils import get_process_details
+from optimx.utils import get_process_details, get_pid_from_port
 from optimx.model_process import get_models, get_model_version
 
 logger = logging.getLogger("optimx.node")
@@ -69,6 +69,9 @@ class LocalNode(Node):
 class LocalService(object):
     def __init__(self, node):
         self.node = node
+
+    def get_pid_from_port_node(self, port):
+        return get_pid_from_port(port)
 
     def get_process_details_byport(self, port, cmd_type):
         cmds_content, pid_list = get_process_details(strport=port, return_type=cmd_type)
@@ -249,7 +252,7 @@ class LocalService(object):
 
     def get_process(self, pid):
         p = psutil.Process(pid)
-        mem = p.memory_info_ex()
+        mem = p.memory_info()
         cpu_times = p.cpu_times()
 
         # psutil throws a KeyError when the uid of a process is not associated with an user.

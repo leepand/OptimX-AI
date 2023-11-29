@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 import uuid
 import locale
+import random
 from flask import (
     render_template,
     request,
@@ -400,6 +401,40 @@ def model_details(modelname, section, env, version):
         penviron = {}
         recomserver_ports_list = model_details["recomserver_ports"]
         rewardserver_ports_list = model_details["rewardserver_ports"]
+        penviron["recom_pid_process"] = {}
+        penviron["recom_pid_process"] = {}
+        penviron["reward_pid_list"] = []
+        penviron["recom_pid_list"] = []
+        penviron["recom_port"] = []
+        penviron["reward_port"] = []
+        if len(recomserver_ports_list) > 0:
+            recom_port = recomserver_ports_list[0]
+            penviron["recom_port"] = recom_port
+            pid_list = current_service.get_pid_from_port_node(recom_port)
+            if len(pid_list)>0:
+                penviron["recom_pid_list"] = pid_list
+                pid_select = random.choice(pid_list)
+                pid_info = current_service.get_process(int(pid_select))
+                pid_info["recom_pid_select"] = pid_select
+                penviron["recom_pid_process"]  =pid_info
+            
+        if len(rewardserver_ports_list) > 0:
+            reward_port = rewardserver_ports_list[0]
+            penviron["reward_port"] = reward_port
+            pid_list = current_service.get_pid_from_port_node(reward_port)
+            if len(pid_list)>0:
+                penviron["reward_pid_list"] = pid_list
+                pid_select = random.choice(pid_list)
+                pid_info = current_service.get_process(int(pid_select))
+                pid_info["reward_pid_select"] = pid_select
+                penviron["reward_pid_process"]  =pid_info
+        
+        context["process_environ"] = penviron
+
+    if section == "environment2":
+        penviron = {}
+        recomserver_ports_list = model_details["recomserver_ports"]
+        rewardserver_ports_list = model_details["rewardserver_ports"]
         if len(recomserver_ports_list) > 0:
             recom_port = recomserver_ports_list[0]
             cmds_content_cmd, pid_list = current_service.get_process_details_byport(
@@ -409,6 +444,7 @@ def model_details(modelname, section, env, version):
                 penviron["RECOM_PORT"] = recom_port
                 penviron["RECOM_CMD"] = cmds_content_cmd[-1]
                 penviron["RECOM_PIDs"] = pid_list
+                penviron["RECOM_WORKERs"] = max(0, len(pid_list) - 1)
                 (
                     cmds_content_user,
                     pid_list,
@@ -433,6 +469,7 @@ def model_details(modelname, section, env, version):
                 penviron["REWARD_PORT"] = reward_port
                 penviron["REWARD_CMD"] = cmds_content_cmd[-1]
                 penviron["REWARD_PIDs"] = pid_list
+                penviron["REWARD_WORKERs"] = max(0, len(pid_list) - 1)
                 (
                     cmds_content_user,
                     pid_list,

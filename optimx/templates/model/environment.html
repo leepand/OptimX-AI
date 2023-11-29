@@ -1,19 +1,61 @@
 {% extends "model.html" %}
 {% block model_content %}
     <table class="table">
-        <thead>
-            <tr>
-                <th>Variable</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for var, value in process_environ.items() %}
-                <tr>
-                    <td>{{ var }}</td>
-                    <td>{{ value }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
+        {% if process_environ.recom_port %}
+        <tr>
+            <td>Recomserver Service Informations</td>
+            <td>
+                <table class="table table-bordered">
+                    <tr>
+                        <td>port selected</td>
+                        <td>{{process_environ.recom_port}}</td>
+                    </tr>
+                    <tr>
+                        <td>recomserver pids</td>
+                        <td>{{process_environ.recom_pid_list}}</td>
+                    </tr>
+                    <tr>
+                        <td>pid selected</td>
+                        <td>{{process_environ.recom_pid_select}}</td>
+                    </tr>
+
+                    {% for var_key, value in process_environ.recom_pid_process.items() %}
+                        <tr>
+                            <td>{{var_key}}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        {% endif %}
+        {% if process_environ.reward_port %}
+        <tr>
+            <td>Rewardserver Service Informations</td>
+            <td>
+                <table class="table table-bordered">
+                    <tr>
+                        <td>port selected</td>
+                        <td>{{process_environ.reward_port}}</td>
+                    </tr>
+                    <tr>
+                        <td>recomserver pids</td>
+                        <td>{{process_environ.reward_pid_list}}</td>
+                    </tr>
+                    <tr>
+                        <td>pid selected</td>
+                        <td>{{process_environ.reward_pid_select}}</td>
+                    </tr>
+
+                    {% for var_key, value in process_environ.reward_pid_process.items() %}
+                        <tr>
+                            <td>{{var_key}}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        {% endif %}
     </table>
 {% endblock %}

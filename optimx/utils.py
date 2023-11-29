@@ -10,6 +10,26 @@ def cat_file_content(file):
     return code_content
 
 
+def get_pid_from_port(strport):
+    # Get process IDs using lsof command
+    strport = str(strport)
+    cmd = "lsof -i:%s | awk '{print $2}'" % strport
+    fd_pid = os.popen(cmd)
+    pids = fd_pid.read().strip().split("\n")
+    fd_pid.close()
+
+    if len(pids) == 1 and pids[0] == "":
+        print("Process not found.")
+        return []
+    # Get command or memory information for each process
+    pid_list = []
+    for pid in pids:
+        if pid != "PID":
+            pid_list.append(pid)
+
+    return pid_list
+
+
 def get_process_details(strport, return_type="cmd"):
     valid_return_types = ["cmd", "cpu", "mem", "user", "start", "time"]
     if return_type not in valid_return_types:
