@@ -255,7 +255,7 @@ a:hover {
     background-color: #d43f3a;
 }
 
-#network div.box, #connections div.box, #disks div.box {
+#network div.box, #connections div.box, #disks div.box, #models div.box{
     width: 100%;
 }
 
@@ -268,6 +268,19 @@ a:hover {
 }
 
 #log-content {
+    height: 700px;
+    overflow: scroll;
+    font-size: 12px;
+    background-color: #222;
+    color: #eee;
+    margin-bottom: 0;
+    border: 0;
+    border-radius: 0;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+}
+
+#log-content2 {
     height: 700px;
     overflow: scroll;
     font-size: 12px;

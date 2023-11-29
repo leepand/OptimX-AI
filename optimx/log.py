@@ -2,7 +2,7 @@ import glob2
 import os
 import logging
 
-logger = logging.getLogger('optimx.log')
+logger = logging.getLogger("optimx.log")
 
 
 class LogError(Exception):
@@ -70,7 +70,7 @@ class ReverseFileSearcher(object):
                 return filepos
 
             # for it to work when the needle is split between chunks.
-            lastbuf = buf[:len(self._needle)]
+            lastbuf = buf[: len(self._needle)]
 
         return -1
 
@@ -90,14 +90,12 @@ class LogReader(object):
 
     def __init__(self, filename, buffer_size=BUFFER_SIZE):
         self.filename = filename
-        self.fp = open(filename, 'r')
+        self.fp = open(filename, "r")
         self.buffer_size = buffer_size
         self._searchers = {}
 
     def __repr__(self):
-        return '<LogReader filename=%s, file-pos=%d>' % (
-            self.filename, self.fp.tell()
-        )
+        return "<LogReader filename=%s, file-pos=%d>" % (self.filename, self.fp.tell())
 
     def set_tail_position(self):
         stat = os.fstat(self.fp.fileno())
@@ -129,7 +127,7 @@ class LogReader(object):
         if position < 0:
             # reset the searcher to start from the tail again.
             searcher.reset()
-            return -1, -1, ''
+            return -1, -1, ""
 
         # try to get some content from before and after the result's position
         read_before = self.buffer_size / 2
@@ -156,7 +154,7 @@ class Logs(object):
         except IOError as e:
             raise LogError('Could not read log file "%s" (%s)' % (filename, e))
 
-        logger.debug('Adding log file %s', filename)
+        logger.debug("Adding log file %s", filename)
 
         return self.available.add(filename)
 
@@ -172,7 +170,9 @@ class Logs(object):
                 log = self.get(filename)
                 available.append(log)
             except IOError:
-                logger.info('Failed to get "%s", removing from available logs', filename)
+                logger.info(
+                    'Failed to get "%s", removing from available logs', filename
+                )
                 to_remove.append(filename)
 
         if to_remove:
@@ -195,7 +195,7 @@ class Logs(object):
                     except LogError as e:
                         logger.warning(e)
 
-        logger.info('Added %d log file(s)', i)
+        logger.info("Added %d log file(s)", i)
         return i
 
     def clear(self):

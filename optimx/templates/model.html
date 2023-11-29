@@ -1,0 +1,69 @@
+{% if not is_xhr|default(false) %}{% extends "base.html" %}{% endif -%}
+{% block content %}
+    <div id="process" class="box">
+        <div class="box-header">
+            <span>{{ model_info.name }} ({{ current_version }})</span>
+        </div>
+        <div class="box-content">
+            <ul class="nav nav-tabs" role="tablist">
+                <li {% if section == "overview" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name,
+                        section="overview",
+                        env=env,
+                        version=current_version) }}">Overview</a>
+                </li>
+                <li {% if section == "environment" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name, 
+                        section="environment",
+                        env=env,
+                        version=current_version) }}">
+                        Environment
+                    </a>
+                </li>
+                <li {% if section == "threads" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name, 
+                        section="threads",
+                        env=env,
+                        version=current_version) }}">
+                        Threads <span class="badge">{{ model_info.name }}</span>
+                    </a>
+                </li>
+                <li {% if section == "files" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name, 
+                        section="files",
+                        env=env,
+                        version=current_version) }}">
+                        Open files <span class="badge">{{ file_nums }}</span>
+                    </a>
+                </li>
+                <li {% if section == "connections" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name, 
+                        section="connections",
+                        env=env,
+                        version=current_version) }}">Connections</a>
+                </li>
+                <li {% if section == "memory" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name,
+                         section="memory",
+                         env=env,
+                         version=current_version) }}">Memory maps</a>
+                </li>
+                <li {% if section == "children" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name, 
+                        section="children",
+                        env=env,
+                        version=current_version) }}">
+                        Children <span class="badge">{{ model_info.name }}</span>
+                    </a>
+                </li>
+                <li {% if section == "viewmodel" %}class="active"{% endif %}>
+                    <a href="{{ url_for(".model_details", modelname=model_info.name,
+                        section="viewmodel",
+                        env=env,
+                        version=current_version) }}">viewmodel</a>
+                </li>
+            </ul>
+            {% block model_content %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}

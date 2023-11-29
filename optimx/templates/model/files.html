@@ -1,0 +1,26 @@
+{% extends "model.html" %}
+{% block model_content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Size</th>
+                <th>Modified at</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in files %}
+                <tr>
+                    <td><a href="{{ url_for(".model_details",
+                        modelname=model_info.name, 
+                        filename=f.file_path,
+                        section="viewmodel", 
+                        version=current_version,
+                        env=env)}}">{{ f.filename }}</a></td>
+                    <td>{{ f.size }}</td>
+                    <td>{{ f.modified_at | fromtimestamp2}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

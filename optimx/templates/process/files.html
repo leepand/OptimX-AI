@@ -10,8 +10,8 @@
         <tbody>
             {% for f in files %}
                 <tr>
-                    <td>{{ f.fd }}</td>
-                    <td>{{ f.path.decode("utf-8") }}</td>
+                    <td>{{ f.filename }}</td>
+                    <td>{{ f.path }}</td>
                 </tr>
             {% endfor %}
         </tbody>

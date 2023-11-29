@@ -1,0 +1,75 @@
+{% if not is_xhr|default(false) %}{% extends "base.html" %}{% endif -%}
+{% block content %}
+    <div id="models">
+        <div class="box">
+            <div class="box-header">
+                <span>Models</span>
+            </div>
+
+            <div class="box">
+                <div class="box-header">
+                    <span>Deployed Models</span>
+                    <small class="pull-right">Listing {{ models|count() }} models</small>
+                </div>
+                <div class="box-content">
+                    <form id="connections-form" action="" method="get">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Model Name</th>
+                                    <th>Environment</th>
+                                    <th>Versions</th>
+                                    <th>Version List</th>
+                                    <th>Recomserver address</th>
+                                    <th>Rewardserver address</th>
+                                    
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>
+                                        <select name="env">
+                                            {% for key,val in envs.items() %}
+                                                <option value="{{ val }}" {{'selected="selected"' if env == val}}>{{ val }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model in models %}
+                                <tr>
+                                    <td>
+                                        {% if model %}
+                                            <a href="{{ url_for(".model_details",
+                                                modelname=model, 
+                                                section="overview", 
+                                                version="None",
+                                                env=sub_model_info[model]["env"])}}">{{ model }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{sub_model_info[model]["env"]}}</td>
+                                    <td>{{sub_model_info[model]["model_version_cnt"]}}</td>
+                                    <td>{{sub_model_info[model].model_version_list if  
+                                                sub_model_info[model]["model_version_list"] else "-"}}</td>
+                                    <td>
+                                        {{sub_model_info[model].recomserver_ports if
+                                            sub_model_info[model]["recomserver_ports"] else "-"}}
+                                    </td>
+                                    <td>
+                                        {{sub_model_info[model].rewardserver_ports if
+                                            sub_model_info[model]["rewardserver_ports"] else "-"}}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </form>
+            </div>
+    </div>
+{% endblock %}
