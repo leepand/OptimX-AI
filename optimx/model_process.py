@@ -1,6 +1,5 @@
 from mlopskit.pipe import ConfigManager, Pipe
 from pathlib import Path, PurePosixPath
-from mlopskit.utils.file_utils import data_dir, get_first_level_directories
 from mlopskit.ext import YAMLDataSet
 
 import warnings
@@ -11,6 +10,19 @@ from datetime import datetime
 
 import hashlib
 import re
+
+
+def get_first_level_directories(folder_path):
+    if not os.path.isdir(folder_path):
+        return []  # 文件夹路径无效，返回空列表
+
+    directories = []
+    for item in os.listdir(folder_path):
+        item_path = os.path.join(folder_path, item)
+        if os.path.isdir(item_path):
+            directories.append(item)
+
+    return directories
 
 
 def compare_versions(version1, version2):
@@ -103,26 +115,19 @@ def get_models(envs=envs, filters=["dev", "prod", "preprod"]):
                 config_path_dev = model_dir / subdirectories[0] / config_rel_dev_path
                 config_path_prod = model_dir / subdirectories[0] / config_rel_prod_path
                 if config_path_dev.exists():
-                    recom_ports_dev = (
-                        YAMLDataSet(str(config_path_dev))
-                        .load()
-                        .get("recomserver")["ports"]
+                    config_dev = YAMLDataSet(str(config_path_dev)).load()
+                    recom_ports_dev = config_dev.get("recomserver", {}).get("ports", [])
+                    reward_ports_dev = config_dev.get("rewardserver", {}).get(
+                        "ports", []
                     )
-                    reward_ports_dev = (
-                        YAMLDataSet(str(config_path_dev))
-                        .load()
-                        .get("rewardserver")["ports"]
-                    )
+
                 if config_path_prod.exists():
-                    recom_ports_prod = (
-                        YAMLDataSet(str(config_path_prod))
-                        .load()
-                        .get("recomserver")["ports"]
+                    config_prod = YAMLDataSet(str(config_path_prod)).load()
+                    recom_ports_prod = config_prod.get("recomserver", {}).get(
+                        "ports", []
                     )
-                    reward_ports_prod = (
-                        YAMLDataSet(str(config_path_prod))
-                        .load()
-                        .get("rewardserver")["ports"]
+                    reward_ports_prod = config_prod.get("rewardserver", {}).get(
+                        "ports", []
                     )
 
             model_sub_info[model]["server_info"] = {

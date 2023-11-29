@@ -8,7 +8,7 @@ import zerorpc
 from optimx.log import Logs
 from optimx.helpers import socket_families, socket_types
 from optimx.net import get_interface_addresses, NetIOCounters
-
+from optimx.utils import get_process_details
 from optimx.model_process import get_models, get_model_version
 
 logger = logging.getLogger("optimx.node")
@@ -69,6 +69,10 @@ class LocalNode(Node):
 class LocalService(object):
     def __init__(self, node):
         self.node = node
+
+    def get_process_details_byport(self, port, cmd_type):
+        cmds_content, pid_list = get_process_details(strport=port, return_type=cmd_type)
+        return cmds_content, pid_list
 
     def get_model_version_info(self, name, version, env):
         return get_model_version(name, version, env)

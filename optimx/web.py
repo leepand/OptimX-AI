@@ -19,6 +19,7 @@ from werkzeug.local import LocalProxy
 from optimx.helpers import socket_families, socket_types
 from optimx.model_process import compare_versions
 from optimx.log import Logs
+from .utils import cat_file_content
 
 from flask_httpauth import HTTPBasicAuth
 
@@ -313,9 +314,6 @@ def view_disks():
 
 @webapp.route("/models")
 def view_models():
-    disks = current_service.get_disks(all_partitions=True)
-    io_counters = list(current_service.get_disks_counters().items())
-    # model_list = current_service.get_models_list()
 
     envs = {"Dev": "dev", "Prod": "prod"}
     form_keys = {
@@ -324,8 +322,6 @@ def view_models():
         "type": socket_types[socket.SOCK_STREAM],
         "state": "LISTEN",
     }
-
-    io_counters.sort(key=lambda x: x[1]["read_count"], reverse=True)
     form_values = dict(
         (k, request.args.get(k, default_val)) for k, default_val in form_keys.items()
     )
@@ -333,11 +329,9 @@ def view_models():
     return render_template(
         "models.html",
         page="models",
-        disks=disks,
         envs=envs,
         models=models_list,
         sub_model_info=sub_model_info,
-        io_counters=io_counters,
         is_xhr=request.headers.get("X-Requested-With"),
         **form_values
     )
@@ -403,14 +397,57 @@ def model_details(modelname, section, env, version):
     context["file_nums"] = len(model_version_files)
 
     if section == "environment":
-        penviron = "current_service.get_process_environment(pid)"
-
-        whitelist = current_app.config.get("PSDASH_ENVIRON_WHITELIST")
-        if whitelist:
-            penviron = dict(
-                (k, v if k in whitelist else "*hidden by whitelist*")
-                for k, v in penviron.items()
+        penviron = {}
+        recomserver_ports_list = model_details["recomserver_ports"]
+        rewardserver_ports_list = model_details["rewardserver_ports"]
+        if len(recomserver_ports_list) > 0:
+            recom_port = recomserver_ports_list[0]
+            cmds_content_cmd, pid_list = current_service.get_process_details_byport(
+                recom_port, "cmd"
             )
+            if len(cmds_content_cmd) > 0:
+                penviron["RECOM_PORT"] = recom_port
+                penviron["RECOM_CMD"] = cmds_content_cmd[-1]
+                penviron["RECOM_PIDs"] = pid_list
+                (
+                    cmds_content_user,
+                    pid_list,
+                ) = current_service.get_process_details_byport(recom_port, "user")
+                penviron["USER"] = cmds_content_user[-1]
+                (
+                    cmds_content_time,
+                    pid_list,
+                ) = current_service.get_process_details_byport(recom_port, "time")
+                penviron["RECOM_TIME"] = cmds_content_time[-1]
+                (
+                    cmds_content_start,
+                    pid_list,
+                ) = current_service.get_process_details_byport(recom_port, "start")
+                penviron["RECOM_START"] = cmds_content_start[-1]
+        if len(rewardserver_ports_list) > 0:
+            reward_port = rewardserver_ports_list[0]
+            cmds_content_cmd, pid_list = current_service.get_process_details_byport(
+                reward_port, "cmd"
+            )
+            if len(cmds_content_cmd) > 0:
+                penviron["REWARD_PORT"] = reward_port
+                penviron["REWARD_CMD"] = cmds_content_cmd[-1]
+                penviron["REWARD_PIDs"] = pid_list
+                (
+                    cmds_content_user,
+                    pid_list,
+                ) = current_service.get_process_details_byport(reward_port, "user")
+                # penviron["USER"] = cmds_content_user[-1]
+                (
+                    cmds_content_time,
+                    pid_list,
+                ) = current_service.get_process_details_byport(reward_port, "time")
+                penviron["REWARD_TIME"] = cmds_content_time[-1]
+                (
+                    cmds_content_start,
+                    pid_list,
+                ) = current_service.get_process_details_byport(reward_port, "start")
+                penviron["REWARD_START"] = cmds_content_start[-1]
 
         context["process_environ"] = penviron
     elif section == "threads":
@@ -431,7 +468,11 @@ def model_details(modelname, section, env, version):
             )
             context["content_model"] = content_model
         except:
-            context["content_model"] = "nulls"
+            try:
+                context["content_model"] = cat_file_content(filename)
+            except:
+                context["content_model"] = "nulls"
+
         context["filename"] = filename
     return render_template("model/%s.html" % section, **context)
 
