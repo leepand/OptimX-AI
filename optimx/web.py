@@ -369,6 +369,8 @@ def model_details(modelname, section, env, version):
         "environment",
         "children",
         "viewmodel",
+        "restart",
+        "model_logs",
     ]
 
     if section not in valid_sections:
@@ -506,10 +508,42 @@ def model_details(modelname, section, env, version):
     elif section == "viewmodel":
         # context["viewmodel"] = "current_service.get_process_limits(pid)"
         try:
-            content_model = read_log(
-                filename, session_key=session_key, seek_tail=seek_tail
-            )
-            context["content_model"] = content_model
+            ops = request.args.get("ops")
+            if ops=="restart":
+                test = ServiceMgr([modelname], env=env)
+                test.start_service()
+                ops = "model_logs"
+                filename="all"
+
+            if ops == "model_logs":
+                model_version_list_details = [
+                    modelv.get("file_path")
+                    for modelv in model_details["model_version_list_details"]
+                    if modelv.get("filename") == version
+                ]
+                if len(model_version_list_details) > 0:
+                    base_path = model_version_list_details[0]
+                else:
+                    base_path = "./"
+                log_path = os.path.join(base_path, "logs") + os.sep
+                if filename == "recom_log":
+                    logs = Path(log_path).glob("*recom*.log")
+                elif filename=="reward_log":
+                    logs = Path(log_path).glob("*reward*.log")
+                else:
+                    logs = Path(log_path).glob("*.log")
+                file_contents = []
+                filenames=[]
+                for _log in logs:
+                    file_contents.append(cat_file_content(_log))
+                    filenames.append(str(_log))
+                context["content_model"] = "\n".join(file_contents)
+                filename = "\n".join(filenames)
+            else:
+                content_model = read_log(
+                    filename, session_key=session_key, seek_tail=seek_tail
+                )
+                context["content_model"] = content_model
         except:
             try:
                 context["content_model"] = cat_file_content(filename)
@@ -518,6 +552,11 @@ def model_details(modelname, section, env, version):
 
         context["filename"] = filename
     elif section == "overview":
+        ops = request.args.get("ops")
+        if ops == "restart":
+            test = ServiceMgr([modelname], env=env)
+            test.start_service()
+
         recomserver_ports_list = model_details["recomserver_ports"]
         rewardserver_ports_list = model_details["rewardserver_ports"]
         context["recom_status"] = "not deployed"
@@ -544,8 +583,16 @@ def model_details(modelname, section, env, version):
 
     elif section == "model_logs":
         try:
-            base_path = model_details["model_version_list_details"].get("file_path", "")
-            log_path = os.path.join(base_path, "log") + os.sep
+            model_version_list_details = [
+                modelv.get("file_path")
+                for modelv in model_details["model_version_list_details"]
+                if modelv.get("filename") == version
+            ]
+            if len(model_version_list_details) > 0:
+                base_path = model_version_list_details[0]
+            else:
+                base_path = "./"
+            log_path = os.path.join(base_path, "logs") + os.sep
             if filename == "recom_log":
                 logs = Path(log_path).glob("*recom*.log")
             else:
@@ -555,7 +602,13 @@ def model_details(modelname, section, env, version):
                 file_contents.append(cat_file_content(_log))
             context["content_model"] = "\n".join(file_contents)
         except:
+            base_path = model_details["model_version_list_details"].get("file_path", "")
+            log_path = os.path.join(base_path, "logs") + os.sep
+            _log = log_path
             context["content_model"] = str(traceback.format_exc())
+
+        context["filename"] = _log
+        # print(context)
         section = "viewmodel"
 
     return render_template("model/%s.html" % section, **context)

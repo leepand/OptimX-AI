@@ -48,13 +48,15 @@
                             {% endif %}
                         </td>
                         <td><a href="{{ url_for(".model_details", modelname=model_info.name,
-                            section="restart",
+                            section="viewmodel",
                             env=env,
+                            ops="restart",
                             version=current_version) }}">restart</a></td>
                         <td><a href="{{ url_for(".model_details",
                             modelname=model_info.name, 
                             filename="recom_log",
-                            section="model_logs", 
+                            section="viewmodel", 
+                            ops="model_logs",
                             version=current_version,
                             env=env)}}">log</a></td>
                     </tr>
@@ -69,13 +71,15 @@
                             {% endif %}
                         </td>
                         <td><a href="{{ url_for(".model_details", modelname=model_info.name,
-                            section="restart",
+                            section="viewmodel",
+                            ops="restart",
                             env=env,
                             version=current_version) }}">restart</a></td>
                         <td><a href="{{ url_for(".model_details",
                             modelname=model_info.name, 
                             filename="reward_log",
-                            section="model_logs", 
+                            section="viewmodel", 
+                            ops="model_logs",
                             version=current_version,
                             env=env)}}">log</a></td>
                     </tr>
