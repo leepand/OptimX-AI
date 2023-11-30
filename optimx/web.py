@@ -509,11 +509,11 @@ def model_details(modelname, section, env, version):
         # context["viewmodel"] = "current_service.get_process_limits(pid)"
         try:
             ops = request.args.get("ops")
-            if ops=="restart":
+            if ops == "restart":
                 test = ServiceMgr([modelname], env=env)
                 test.start_service()
                 ops = "model_logs"
-                filename="all"
+                filename = "all"
 
             if ops == "model_logs":
                 model_version_list_details = [
@@ -528,12 +528,12 @@ def model_details(modelname, section, env, version):
                 log_path = os.path.join(base_path, "logs") + os.sep
                 if filename == "recom_log":
                     logs = Path(log_path).glob("*recom*.log")
-                elif filename=="reward_log":
+                elif filename == "reward_log":
                     logs = Path(log_path).glob("*reward*.log")
                 else:
                     logs = Path(log_path).glob("*.log")
                 file_contents = []
-                filenames=[]
+                filenames = []
                 for _log in logs:
                     file_contents.append(cat_file_content(_log))
                     filenames.append(str(_log))
