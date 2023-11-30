@@ -111,4 +111,5 @@ optional arguments:
 ## Screenshots
 
 Model:
-![model](resources/overview.jpg)
+
+![model](resources/model-overview.jpg)
