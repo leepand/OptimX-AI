@@ -90,3 +90,20 @@ optional arguments:
   --register-as name    The name to register as. (This will default to the
                         node's hostname)
 ```
+
+## Configuration
+
+根据提供的信息，optimx使用Flask提供的配置处理功能。可以使用环境变量OPTIMX_CONFIG来指定optimx的配置文件，该文件将在启动时被读取。
+
+除了Flask提供的内置配置值之外，optimx还引入了一些特定的配置选项。然而，由于所提供的内容中没有提到具体的optimx配置选项，我无法提供有关它们的详细信息。要了解有关optimx特定配置选项的信息，您可以参考optimx文档或配置文件本身。
+
+| Name | Description |
+| ---- | ----------- |
+| `OPTIMX_AUTH_USERNAME` | 当设置了该值和`OPTIMX_AUTH_PASSWORD`时，将启用基本身份验证，并使用提供的凭据。基本身份验证的用户名 |
+| `OPTIMX_AUTH_PASSWORD` | 基本身份验证的密码 |
+| `OPTIMX_ALLOWED_REMOTE_ADDRESSES` | 如果设置了该值，只有提供的 IP 地址将被允许访问 optimx。多个地址之间使用逗号分隔。例如：`OPTIMX_ALLOWED_REMOTE_ADDRESSES = "10.0.0.2, 192.29.20.2"` |
+| `OPTIMX_LOGS_INTERVAL` | 重新应用日志模式的时间间隔（以秒为单位），以确保文件系统的更改得到应用（例如创建或删除日志文件）。默认值为60秒。
+| `OPTIMX_REGISTER_INTERVAL` | 将代理注册到主机 optimx 节点的时间间隔（以秒为单位）。这是定期进行的操作，以便确定是否有任何节点已经离线以及离线的时间。默认值为60秒。|
+| `OPTIMX_LOGS` | 启动时要应用的日志模式。例如：`['/var/log/*.log']`。要使用命令行覆盖此选项，请使用 `-l/--log` 参数选项。|
+| `OPTIMX_REGISTER_TO` | 在代理模式下运行时，用于设置代理节点注册到哪个 optimx 节点。例如：`http://10.0.20.2:5000`。|
+| `OPTIMX_REGISTER_AS` | 在代理模式下运行时，用于设置要在由 `OPTIMX_REGISTER_TO` 指定的主机 optimx 节点上注册的名称。|
