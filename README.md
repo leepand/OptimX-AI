@@ -107,3 +107,8 @@ optional arguments:
 | `OPTIMX_LOGS` | 启动时要应用的日志模式。例如：`['/var/log/*.log']`。要使用命令行覆盖此选项，请使用 `-l/--log` 参数选项。|
 | `OPTIMX_REGISTER_TO` | 在代理模式下运行时，用于设置代理节点注册到哪个 optimx 节点。例如：`http://10.0.20.2:5000`。|
 | `OPTIMX_REGISTER_AS` | 在代理模式下运行时，用于设置要在由 `OPTIMX_REGISTER_TO` 指定的主机 optimx 节点上注册的名称。|
+
+## Screenshots
+
+Model:
+![model](resources/overview.jpg)
