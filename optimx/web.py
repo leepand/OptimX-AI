@@ -18,6 +18,7 @@ from flask import (
     g,
 )
 from pathlib import Path
+import traceback
 
 from werkzeug.local import LocalProxy
 from optimx.helpers import socket_families, socket_types
@@ -96,7 +97,7 @@ def check_access():
     if not current_node:
         return "Unknown optimx node specified", 404
 
-    allowed_remote_addrs = current_app.config.get("PSDASH_ALLOWED_REMOTE_ADDRESSES")
+    allowed_remote_addrs = current_app.config.get("OPTIMX_ALLOWED_REMOTE_ADDRESSES")
     if allowed_remote_addrs:
         if request.remote_addr not in allowed_remote_addrs:
             current_app.logger.info(
@@ -106,15 +107,15 @@ def check_access():
             current_app.logger.debug("Allowed addresses: %s", allowed_remote_addrs)
             return "Access denied", 401
 
-    username = current_app.config.get("PSDASH_AUTH_USERNAME")
-    password = current_app.config.get("PSDASH_AUTH_PASSWORD")
+    username = current_app.config.get("OPTIMX_AUTH_USERNAME")
+    password = current_app.config.get("OPTIMX_AUTH_PASSWORD")
     if username and password:
         auth = request.authorization
         if not auth or auth.username != username or auth.password != password:
             return Response(
                 "Access deined",
                 401,
-                {"WWW-Authenticate": 'Basic realm="psDash login required"'},
+                {"WWW-Authenticate": 'Basic realm="optimx login required"'},
             )
 
 
@@ -145,8 +146,17 @@ def index():
 
     netifs = list(current_service.get_network_interfaces().values())
     netifs.sort(key=lambda x: x.get("bytes_sent"), reverse=True)
+    models_all = current_service.get_models_origin()
+    models_dev = models_all["dev"]
+    models_prod = models_all["prod"]
+    models_cnt = max(
+        len(models_dev.get("models", [])), len(models_prod.get("models", []))
+    )
+    models = {}
+    models["models_cnt"]  =models_cnt
 
     data = {
+        "models":models,
         "load_avg": sysinfo["load_avg"],
         "num_cpus": sysinfo["num_cpus"],
         "memory": current_service.get_memory(),
@@ -220,7 +230,7 @@ def process(pid, section):
     if section == "environment":
         penviron = current_service.get_process_environment(pid)
 
-        whitelist = current_app.config.get("PSDASH_ENVIRON_WHITELIST")
+        whitelist = current_app.config.get("OPTIMX_ENVIRON_WHITELIST")
         if whitelist:
             penviron = dict(
                 (k, v if k in whitelist else "*hidden by whitelist*")
@@ -649,48 +659,6 @@ def view_log():
         return content
 
     return render_template("log.html", content=content, filename=filename)
-
-
-import traceback
-
-
-@webapp.route("/vmodel22")
-def view_model22():
-    filename = request.args["filename"]
-    seek_tail = request.args.get("seek_tail", "1") != "0"
-    session_key = session.get("client_id")
-
-    try:
-
-        def read_log(filename, session_key, seek_tail=False):
-            logs = Logs()
-            logs.add_patterns([filename])
-            log = logs.get(filename, key=session_key)
-            if seek_tail:
-                log.set_tail_position()
-            return log.read()
-
-        # filename="../bird-Copy1.log"
-        # content = current_service.read_log(
-        content = read_log(filename, session_key=session_key, seek_tail=seek_tail)
-        print(content, "content")
-    except KeyError:
-        print(traceback.format_exc())
-        error_msg = "File not found. Only files passed through args are allowed."
-        # if request.is_xhr:
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return error_msg
-        return render_template("error.html", error=error_msg), 404
-
-    # if request.is_xhr:
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        return content
-
-    global_display = {"page": "models"}
-
-    return render_template(
-        "model/viewmodel.html", content=content, filename=filename, **global_display
-    )
 
 
 @webapp.route("/log/search")

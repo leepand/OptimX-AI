@@ -1,6 +1,23 @@
 {% if not is_xhr|default(false) %}{% extends "base.html" %}{% endif -%}
 {% block content %}
     <div id="dashboard">
+        <div class="box model">
+            <div class="box-header">
+                <span>Models</span>
+            </div>
+            <div class="box-content">
+                <table class="table">
+                    <tr>
+                        <td class="label-col">Model cnt</td>
+                        <td class="load" style="word-spacing: 10px;">{{ models.models_cnt }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Model Env cnt</td>
+                        <td class="user">2</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
         <div class="box cpu">
             <div class="box-header">
                 <span>CPU</span>

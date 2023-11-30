@@ -21,7 +21,7 @@ from optimx.web import fromtimestamp, fromtimestamp2
 logger = getLogger("optimx.run")
 
 
-class PsDashRunner(object):
+class OptimXRunner(object):
     DEFAULT_LOG_INTERVAL = 60
     DEFAULT_NET_IO_COUNTER_INTERVAL = 3
     DEFAULT_REGISTER_INTERVAL = 60
@@ -157,6 +157,7 @@ class PsDashRunner(object):
         app.config.from_envvar("OPTIMX_CONFIG", silent=True)
 
         app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
+        app.config["OPTIMX_LOGS"] = ["/Users/leepand/同步空间/codes/logs/*.log"]
 
         if config and isinstance(config, dict):
             app.config.update(config)
@@ -341,7 +342,7 @@ class PsDashRunner(object):
 
 
 def main():
-    r = PsDashRunner.create_from_cli_args()
+    r = OptimXRunner.create_from_cli_args()
     r.run()
 
 

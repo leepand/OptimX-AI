@@ -168,6 +168,10 @@ a:hover {
     min-width: 300px;
 }
 
+#dashboard div.box.model {
+    min-width: 300px;
+}
+
 #dashboard div.box.users {
     min-width: 500px;
 }

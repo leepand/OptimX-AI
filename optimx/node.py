@@ -70,6 +70,9 @@ class LocalService(object):
     def __init__(self, node):
         self.node = node
 
+    def get_models_origin(self):
+        return get_models()
+
     def get_pid_from_port_node(self, port):
         return get_pid_from_port(port)
 
