@@ -17,3 +17,5 @@ SERVER_PORT_CONFIG = {
         "workers": 4,
     },
 }
+
+MODEL_SERVER_HOST = {"host": "0.0.0.0", "port": 5005}
