@@ -24,7 +24,7 @@ from werkzeug.local import LocalProxy
 from optimx.helpers import socket_families, socket_types
 from optimx.model_process import compare_versions
 from optimx.log import Logs
-from .utils import cat_file_content
+from optimx.utils.sys_utils import cat_file_content
 
 from flask_httpauth import HTTPBasicAuth
 from mlopskit.pipe import ServiceMgr
@@ -147,16 +147,22 @@ def index():
     netifs = list(current_service.get_network_interfaces().values())
     netifs.sort(key=lambda x: x.get("bytes_sent"), reverse=True)
     models_all = current_service.get_models_origin()
-    models_dev = models_all["dev"]
-    models_prod = models_all["prod"]
+    models_dev = models_all.get("dev", {})
+    models_prod = models_all.get("prod", {})
     models_cnt = max(
         len(models_dev.get("models", [])), len(models_prod.get("models", []))
     )
     models = {}
-    models["models_cnt"]  =models_cnt
+    models["models_cnt"] = models_cnt
+    model_version_cnt = 0
+    model_sub_info = models_prod.get("sub_model_info", {})
+
+    for model in list(model_sub_info.keys()):
+        model_version_cnt += model_sub_info[model]["model_version_cnt"]
+    models["model_version_cnt"] = model_version_cnt
 
     data = {
-        "models":models,
+        "models": models,
         "load_avg": sysinfo["load_avg"],
         "num_cpus": sysinfo["num_cpus"],
         "memory": current_service.get_memory(),

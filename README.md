@@ -9,6 +9,7 @@ OptimX-AI 是一个用于在线（online）强化学习（RL）模型的轻量�
 * [Installation](#installation)
 * [Getting started](#getting-started)
 * [Configuration](#configuration)
+* [Assets](#assets)
 * [Screenshots](#screenshots)
 * [License](#license)
 
@@ -107,6 +108,47 @@ optional arguments:
 | `OPTIMX_LOGS` | 启动时要应用的日志模式。例如：`['/var/log/*.log']`。要使用命令行覆盖此选项，请使用 `-l/--log` 参数选项。|
 | `OPTIMX_REGISTER_TO` | 在代理模式下运行时，用于设置代理节点注册到哪个 optimx 节点。例如：`http://10.0.20.2:5000`。|
 | `OPTIMX_REGISTER_AS` | 在代理模式下运行时，用于设置要在由 `OPTIMX_REGISTER_TO` 指定的主机 optimx 节点上注册的名称。|
+
+## Assets
+
+- 模型可以有一个与其链接的资产，以存储参数、权重或任何其他东西。当实例化对象时，会加载并反序列化该资源ModelLibrary。
+- 模型可以依赖于其他模型并共享内存中的对象（特别是，它们可以共享资产）。当需要给定模型时，仅加载模型的最小子集。
+
+### 远程模型资产
+
+远程资产允许您与团队的其他成员以及生产服务共享运行模型所需的文件和文件夹。
+
+此外，还optimx有助于这些文件的版本控制以及本地开发人员副本的管理。
+
+#### 远程模型资产属性
+
+因为optimx的远程模型资产是不可变的，并且它们的真实来源必须是单个远程对象存储。它们具有以下优点：
+
+- **审计**可以知道生产服务何时使用了哪个资产以及由谁推送；
+- **回溯**总是可以恢复到旧版本，Model因为资产将存在并且无法修改；
+- **数据丢失**本地计算机可能会丢失所有数据，资产始终可以从远程存储中获得；
+- **可重复性**保证在本地计算机上运行的代码使用与生产中运行的代码相同的工件和代码
+尽管这些是有代价的，但optimx可以帮助您管理、更新和创建新资产。
+
+它还有助于维护资产的本地副本，以使开发更快（在**资产目录**中）。
+
+#### 具有远程资产的模型
+
+使用远程资源与使用本地资源以及我们之前看到的Model using 完全相同。_load
+
+我们添加一个有效的远程资产规范作为配置中的键， optimx确保在Model实例化之前检索它：
+
+```python
+class ModelWithAsset(Model):
+    CONFIGURATIONS = {
+        "model_with_asset": {"asset": "test/asset:1"} # meaning "version 1 of test/asset"
+    }
+```
+假设您已参数化 GCS 对象存储，这将导致ModelLibrary：
+
+- 在本地下载对象gs://some-bucket-name/assets/test/1/yolo/*（使用哪个存储提供商和存储桶取决于您的配置）
+- 将文件写入资产目录（由 控制ASSETS_DIR）
+- 相应地设置Model.asset_path属性。
 
 ## Screenshots
 

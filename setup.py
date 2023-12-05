@@ -36,5 +36,10 @@ setup(
     ],
     test_suite="tests",
     tests_require=["unittest2"],
-    entry_points={"console_scripts": ["optimx = optimx.run:main"]},
+    entry_points={
+        "console_scripts": [
+            "optimxserver = optimx.run:main",
+            "optimx = optimx.cli:optimx_cli",
+        ]
+    },
 )

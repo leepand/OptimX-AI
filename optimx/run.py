@@ -46,7 +46,8 @@ class OptimXRunner(object):
 
     def _get_args(cls, args):
         parser = argparse.ArgumentParser(
-            description="optimx %s - system information web dashboard" % __version__
+            add_help=True,
+            description="optimx %s - system information web dashboard" % __version__,
         )
         parser.add_argument(
             "-l",
@@ -107,15 +108,18 @@ class OptimXRunner(object):
             metavar="name",
             help="The name to register as. (This will default to the node's hostname)",
         )
-
+        # print("parser.parse_args(args)")
+        parser.print_help()
         return parser.parse_args(args)
 
     def _load_args_config(self, args):
         config = {}
+        # _args = self._get_args(args)
         for k, v in vars(self._get_args(args)).items():
             if v:
                 key = "OPTIMX_%s" % k.upper() if k != "debug" else "DEBUG"
                 config[key] = v
+        print(config)
         return config
 
     def _setup_nodes(self):
@@ -186,7 +190,7 @@ class OptimXRunner(object):
         if not addrs:
             return
 
-        if isinstance(addrs, (str, unicode)):
+        if isinstance(addrs, str):
             app.config[key] = [a.strip() for a in addrs.split(",")]
 
     def _setup_logging(self):

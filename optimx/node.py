@@ -8,7 +8,7 @@ import zerorpc
 from optimx.log import Logs
 from optimx.helpers import socket_families, socket_types
 from optimx.net import get_interface_addresses, NetIOCounters
-from optimx.utils import get_process_details, get_pid_from_port
+from optimx.utils.sys_utils import get_process_details, get_pid_from_port
 from optimx.model_process import get_models, get_model_version
 
 logger = logging.getLogger("optimx.node")
@@ -88,7 +88,7 @@ class LocalService(object):
         models = get_models()
         sub_model_info = {}
         models_list = []
-        print(filters, "filters")
+        # print(filters, "filters")
         if filters.get("env") == "":
             filters["env"] = ["dev", "prod"]
         for k, v in filters.items():

@@ -10,6 +10,7 @@ from datetime import datetime
 
 import hashlib
 import re
+import glob
 
 
 def get_first_level_directories(folder_path):
@@ -30,6 +31,16 @@ def compare_versions(version1, version2):
     v1 = int(re.findall(pattern, version1)[0])
     v2 = int(re.findall(pattern, version2)[0])
     return v1 - v2
+
+
+def get_size(dir_path):
+    if os.path.isfile(dir_path):
+        return os.stat(dir_path).st_size
+    return sum(
+        os.stat(f).st_size
+        for f in glob.iglob(os.path.join(dir_path, "**/*"), recursive=True)
+        if os.path.isfile(f)
+    )
 
 
 def filemd5(fname):
@@ -86,7 +97,8 @@ def get_models(envs=envs, filters=["dev", "prod", "preprod"]):
                 "file_path": str(p),
                 "filename": fname,
                 "modified_at": dtmod,
-                "size": human_readable_file_size(p.stat().st_size),
+                # "size": human_readable_file_size(p.stat().st_size),
+                "size": human_readable_file_size(get_size(str(p))),
                 "crc": crc,
             }
 
@@ -176,7 +188,8 @@ def get_model_version(name, version, env):
             "file_path": str(p),
             "filename": fname,
             "modified_at": dtmod,
-            "size": human_readable_file_size(p.stat().st_size),
+            # "size": human_readable_file_size(p.stat().st_size),
+            "size": human_readable_file_size(get_size(str(p))),
             "crc": crc,
         }
 
