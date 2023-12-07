@@ -147,7 +147,7 @@ class ModelWithAsset(Model):
 假设您已参数化 GCS 对象存储，这将导致ModelLibrary：
 
 - 在本地下载对象gs://some-bucket-name/assets/test/1/yolo/*（使用哪个存储提供商和存储桶取决于您的配置）
-- 将文件写入资产目录（由 控制ASSETS_DIR）
+- 将文件写入资产目录（由ASSETS_DIR控制）
 - 相应地设置Model.asset_path属性。
 
 ### Configuring models
