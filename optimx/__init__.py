@@ -4,6 +4,7 @@ import warnings
 from optimx.core.library import ModelLibrary, load_model  # NOQA
 from optimx.core.model import Model  # NOQA
 from optimx.api import pull_assets
+from optimx.envs import make
 
 # Silence Tensorflow warnings
 # https://github.com/tensorflow/tensorflow/issues/30427

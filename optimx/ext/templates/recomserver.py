@@ -1,6 +1,6 @@
 from optimx.ext import YAMLDataSet
 from optimx import Model, ModelLibrary, make
-from optimx.log_base import create_log_path
+from optimx.utils.logx import log_recom_error, log_recom_debug
 
 import traceback
 import numpy as np
@@ -11,12 +11,10 @@ from utils import debug_log
 
 
 class RecomServer(Model):
-    CONFIGURATIONS = {"recomserver": {}}
+    CONFIGURATIONS = {"recomserver": {"env": "dev"}}
 
     def _load(self):
-        # 创建日志路径
-        self.recom_logs_path = create_log_path("{{model_name}}", "recom_errors")
-        self.recom_logs_debug = create_log_path("{{model_name}}", "recom_debugs")
+        self.model_name = f"{{model_name}}"
         self.debug_db = make("cache/feature_store-v1", db_name="debug_tests.db")
 
         self.model_db = make(
@@ -38,9 +36,9 @@ class RecomServer(Model):
             return items
         except:
             # 将异常堆栈信息写入错误日志文件
-            log_file = os.path.join(self.recom_logs_path, f"{request_id}_error.txt")
-            with open(log_file, "w") as f:
-                f.write(str(traceback.format_exc()))
+            error_content = [f"{self.model_name}-error", str(traceback.format_exc())]
+            log_recom_error(error_content)
+            return items
 
             return items
 
