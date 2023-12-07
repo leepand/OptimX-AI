@@ -41,6 +41,8 @@ from optimx.utils.memory import PerformanceTracker
 from optimx.utils.pretty import describe
 from optimx.utils.redis import RedisCacheException
 
+from optimx.utils.file_utils import data_dir
+
 logger = get_logger(__name__)
 
 
@@ -256,10 +258,14 @@ class ModelLibrary:
         }
 
         logger.debug("Instantiating Model object", model_name=model_name)
+        env = configuration.env
+        if not env:
+            env = "dev"
+        base_asset_path = os.path.join(data_dir(), env, model_name)
         self.models[model_name] = configuration.model_type(
             asset_path=self.assets_info[configuration.asset].path
             if configuration.asset
-            else "",
+            else base_asset_path,
             model_dependencies=model_dependencies,
             service_settings=self.settings,
             model_settings=model_settings or {},

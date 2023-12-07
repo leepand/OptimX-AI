@@ -9,6 +9,10 @@ from optimx.core.errors import ModelsNotFound
 from optimx.core.library import LibrarySettings, ModelConfiguration, ModelLibrary
 from optimx.core.model import AbstractModel, AsyncModel
 from optimx.core.types import LibraryModelsType
+import optimx.ext.shellkit as sh
+from optimx.assets.manager import AssetsManager
+from optimx.assets.remote import StorageProvider
+from optimx.utils.file_utils import data_dir
 
 logger = get_logger(__name__)
 
@@ -191,3 +195,50 @@ def create_optimx_app(models=None, required_models=None):
     router = OptimxAutoAPIRouter(required_models=required_models, models=models)
     app.include_router(router)
     return app
+
+
+home_data_path = data_dir()
+
+
+def pull_assets(
+    name,
+    env="dev",
+    version=None,
+    assets_dir=os.getcwd(),
+    provider="local",
+    bucket=home_data_path,
+    force_download=False,
+):
+    """
+    从指定的存储位置拉取资产。
+
+    参数:
+        name (str): 资产名称。
+        env (str, 可选): 环境名称，默认为"dev"。
+        version (str, 可选): 资产版本，默认为None。
+        assets_dir (str, 可选): 资产保存目录，默认为当前工作目录。
+        provider (str, 可选): 存储提供者，默认为"local"。
+        bucket (str, 可选): 存储桶或路径，默认为home_data_path。
+        force_download (bool, 可选): 是否强制下载资产，默认为False。
+
+    返回值:
+        assets_info (dict): 拉取的资产信息。
+
+    """
+    manager = AssetsManager(
+        assets_dir=assets_dir,
+        storage_provider=StorageProvider(
+            provider=provider,
+            bucket=bucket,
+            prefix=env,
+        ),
+    )
+    if version:
+        model_meta = f"{name}:{version}"
+    else:
+        model_meta = name
+
+    assets_info = manager.fetch_asset(
+        model_meta, return_info=True, force_download=force_download
+    )
+    return assets_info

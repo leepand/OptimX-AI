@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 class ModelConfiguration(pydantic.BaseSettings):
     model_type: Type[Asset]
     asset: Optional[str]
+    env: Optional[str]
     model_settings: Optional[Dict[str, Any]] = {}
     model_dependencies: Optional[Dict[str, str]]
 
