@@ -258,10 +258,10 @@ class ModelLibrary:
         }
 
         logger.debug("Instantiating Model object", model_name=model_name)
-        env = configuration.env
-        if not env:
-            env = "dev"
-        base_asset_path = os.path.join(data_dir(), env, model_name)
+        self.env = configuration.env
+        if not self.env:
+            self.env = "dev"
+        base_asset_path = os.path.join(data_dir(), self.env, model_name)
         self.models[model_name] = configuration.model_type(
             asset_path=self.assets_info[configuration.asset].path
             if configuration.asset

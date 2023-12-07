@@ -4,4 +4,4 @@ gunicorn \
     -b :{{port}} \
     --preload \
     --worker-class=uvicorn.workers.UvicornWorker \
-    'mlopskit.api:create_mlopskit_app()'
+    'optimx.api:create_optimx_app()'

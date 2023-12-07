@@ -1,6 +1,6 @@
 from optimx import make
 
-debug_db = make("cache/feature_store-v1", db_name="debug_tests.db")
+debug_db = make("cache/feature_store-v0.0", db_name="debug_tests.db")
 
 model_name = "{{model_name}}"
 debug_key = f"{model_name}:debug"

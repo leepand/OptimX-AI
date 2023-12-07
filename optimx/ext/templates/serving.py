@@ -1,5 +1,5 @@
-from mlopskit.pipe import ServiceMgr
-from mlopskit import Client
+from optimx import ServiceMgr
+from optimx import Client
 
 test = ServiceMgr(["{{model_name}}"], env="dev")
 test.start_service()

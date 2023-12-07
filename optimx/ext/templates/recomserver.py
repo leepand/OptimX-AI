@@ -1,6 +1,7 @@
 from optimx.ext import YAMLDataSet
 from optimx import Model, ModelLibrary, make
 from optimx.utils.logx import log_recom_error, log_recom_debug
+from optimx import make
 
 import traceback
 import numpy as np
@@ -15,10 +16,12 @@ class RecomServer(Model):
 
     def _load(self):
         self.model_name = f"{{model_name}}"
-        self.debug_db = make("cache/feature_store-v1", db_name="debug_tests.db")
+        self.debug_db = make(
+            "cache/feature_store-v1", db_name="debug_tests.db", env="dev"
+        )
 
         self.model_db = make(
-            "cache/{{model_name}}-v{{version}}", db_name="{{model_name}}.db"
+            "cache/{{model_name}}-v{{version}}", db_name="{{model_name}}.db", env="dev"
         )
 
     def _predict(self, items):
