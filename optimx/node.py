@@ -11,6 +11,8 @@ from optimx.net import get_interface_addresses, NetIOCounters
 from optimx.utils.sys_utils import get_process_details, get_pid_from_port
 from optimx.model_process import get_models, get_model_version
 
+from optimx.model_assets import get_models_meta, get_file_info, ALLOWED_ENV
+
 logger = logging.getLogger("optimx.node")
 
 
@@ -70,8 +72,24 @@ class LocalService(object):
     def __init__(self, node):
         self.node = node
 
+    def get_model_assets(self, filters=None):
+        filters = filters or {}
+        model_infos = {}
+        for k, v in filters.items():
+            if v in ALLOWED_ENV:
+                model_infos_sub = get_models_meta(env=v)
+                model_infos["env"] = v
+                model_infos["model_infos_sub"] = model_infos_sub
+        return model_infos
+
     def get_models_origin(self):
         return get_models()
+
+    def get_model_version_file_info(self, env, modelname, version, fnames):
+        version_files = get_file_info(
+            env=env, name=modelname, version=version, filenames=fnames
+        )
+        return version_files
 
     def get_pid_from_port_node(self, port):
         return get_pid_from_port(port)

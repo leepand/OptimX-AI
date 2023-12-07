@@ -48,22 +48,22 @@
                                                 modelname=model, 
                                                 section="overview", 
                                                 version="None",
-                                                env=sub_model_info[model]["env"])}}">{{ model }}</a>
+                                                env=sub_model_info["env"])}}">{{ model }}</a>
                                         {% else %}
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>{{sub_model_info[model]["env"]}}</td>
-                                    <td>{{sub_model_info[model]["model_version_cnt"]}}</td>
-                                    <td>{{sub_model_info[model].model_version_list if  
-                                                sub_model_info[model]["model_version_list"] else "-"}}</td>
+                                    <td>{{sub_model_info["env"]}}</td>
+                                    <td>{{sub_model_info[model]["version_list"]|length}}</td>
+                                    <td>{{sub_model_info[model].version_list if  
+                                                sub_model_info[model]["version_list"] else "-"}}</td>
                                     <td>
-                                        {{sub_model_info[model].recomserver_ports if
-                                            sub_model_info[model]["recomserver_ports"] else "-"}}
+                                        {{sub_model_info[model].recom_ports if
+                                            sub_model_info[model]["recom_ports"] else "-"}}
                                     </td>
                                     <td>
-                                        {{sub_model_info[model].rewardserver_ports if
-                                            sub_model_info[model]["rewardserver_ports"] else "-"}}
+                                        {{sub_model_info[model].reward_ports if
+                                            sub_model_info[model].reward_ports else "-"}}
                                     </td>
                                 </tr>
                                 {% endfor %}

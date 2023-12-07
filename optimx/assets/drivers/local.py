@@ -29,9 +29,11 @@ class LocalStorageDriver(StorageDriver):
         return None
 
     def iterate_objects(self, prefix: Optional[str] = None):
-        for filename in glob.iglob(
-            os.path.join(self.bucket, os.path.join("**", "*")), recursive=True
-        ):
+        if prefix:
+            prefix_env_path = os.path.join(self.bucket, prefix, os.path.join("**", "*"))
+        else:
+            prefix_env_path = os.path.join(self.bucket, os.path.join("**", "*"))
+        for filename in glob.iglob(prefix_env_path, recursive=True):
             if os.path.isfile(filename):
                 yield "/".join(os.path.split(os.path.relpath(filename, self.bucket)))
 

@@ -18,14 +18,15 @@
             <td>Model Versions</td>
             <td>
                 <table class="table table-bordered">
-                    {% for version in model_details.model_version_list_details %}
+                    {% for version in model_details.version_list %}
                     <tr>
-                        <td><a href="{{ url_for(".model_details", modelname=model_info.name,
+                        <td><a href="{{ url_for(".model_details",
+                            modelname=model_info.name,
                             section="overview",
                             env=env,
-                            version=version.filename) }}">{{version.filename}}</a></td>
-                        <td>{{version.size}}</td>
-                        <td>{{ version.modified_at }}</td>
+                            version=version) }}">{{version}}</a></td>
+                        <td>{{model_details[version].size}}</td>
+                        <td>{{ model_details[version].push_date | fromtimestamp2}}</td>
                     </tr>
             
                     {% endfor %}
@@ -39,7 +40,7 @@
                 <table class="table table-bordered">
                     <tr>
                         <td>Recomserver Ports</td>
-                        <td>{{ model_details["recomserver_ports"] }}</td>
+                        <td>{{ model_details.recom_ports if model_details.recom_ports else "-" }}</td>
                         <td>
                             {% if recom_status=="running" %}
                                 <span class="badge">{{recom_status}}</span>
@@ -62,7 +63,7 @@
                     </tr>
                     <tr>
                         <td>Rewardserver Ports</td>
-                        <td>{{ model_details["rewardserver_ports"] }}</td>
+                        <td>{{ model_details.reward_ports if model_details.reward_ports else "-" }}</td>
                         <td>
                             {% if reward_status=="running" %}
                                 <span class="badge">{{reward_status}}</span>

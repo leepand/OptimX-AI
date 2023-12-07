@@ -134,7 +134,7 @@ optional arguments:
 
 #### 具有远程资产的模型
 
-使用远程资源与使用本地资源以及我们之前看到的Model using 完全相同。_load
+使用远程资源与使用本地资源以及我们之前看到的Model完全相同。_load
 
 我们添加一个有效的远程资产规范作为配置中的键， optimx确保在Model实例化之前检索它：
 
@@ -149,6 +149,31 @@ class ModelWithAsset(Model):
 - 在本地下载对象gs://some-bucket-name/assets/test/1/yolo/*（使用哪个存储提供商和存储桶取决于您的配置）
 - 将文件写入资产目录（由 控制ASSETS_DIR）
 - 相应地设置Model.asset_path属性。
+
+### Configuring models
+
+随着模型变得更加复杂，它们会附加到不同的资产或其他模型。我们需要通过ModelLibrary对象来实例化它们，该对象将为我们处理所有这些事情。
+
+为此，我们必须配置我们的模型：给它一个名称，可能还有资产、依赖项、添加测试用例等。
+
+optimx通过使用 class 属性指定模型，模型可供客户端使用CONFIGURATIONS：
+
+```python
+class SimpleModel(Model):
+    CONFIGURATIONS = {
+        "simple": {}
+    }
+    def _predict(self, item):
+        return "something"
+```
+
+目前，我们只给了它一个名称"simple"，使该模型可以通过ModelLibrary.
+
+其余配置是空的，但我们将在下一节中添加它。
+
+
+
+
 
 ## Screenshots
 

@@ -23,7 +23,7 @@ class ReverseFileSearcher(object):
 
         self._filename = filename
         self._needle = needle
-        self._fp = open(filename, "r")
+        self._fp = open(filename, "rb")
         self.reset()
 
     def reset(self):
@@ -49,7 +49,7 @@ class ReverseFileSearcher(object):
             return ""
         destpos = max(filepos - self._chunk_size, 0)
         self._fp.seek(destpos)
-        buf = self._fp.read(filepos - destpos)
+        buf = self._fp.read(filepos - destpos).decode("utf-8")
         self._fp.seek(destpos)
         return buf
 
@@ -90,7 +90,7 @@ class LogReader(object):
 
     def __init__(self, filename, buffer_size=BUFFER_SIZE):
         self.filename = filename
-        self.fp = open(filename, "r")
+        self.fp = open(filename, "rb")
         self.buffer_size = buffer_size
         self._searchers = {}
 
@@ -105,7 +105,7 @@ class LogReader(object):
             self.fp.seek(0)
 
     def read(self):
-        buf = self.fp.read(self.buffer_size)
+        buf = self.fp.read(self.buffer_size).decode("utf-8")
         return buf
 
     def search(self, text):
@@ -133,6 +133,7 @@ class LogReader(object):
         read_before = self.buffer_size / 2
         offset = max(position - read_before, 0)
         bufferpos = position if offset == 0 else read_before
+        offset = int(offset)
         self.fp.seek(offset)
         return position, bufferpos, self.read()
 

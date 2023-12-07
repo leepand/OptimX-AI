@@ -173,7 +173,7 @@ class PromptTemplate:
 # For backwards compatibility.
 Prompt = PromptTemplate
 
-PACKAGE_NAME = "mlopskit"
+PACKAGE_NAME = "optimx"
 
 
 def create_template(filename, input_variables, template_format="f-string", **kwargs):

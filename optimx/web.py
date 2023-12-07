@@ -25,6 +25,7 @@ from optimx.helpers import socket_families, socket_types
 from optimx.model_process import compare_versions
 from optimx.log import Logs
 from optimx.utils.sys_utils import cat_file_content
+from optimx.model_assets import ALLOWED_ENV
 
 from flask_httpauth import HTTPBasicAuth
 from mlopskit.pipe import ServiceMgr
@@ -336,23 +337,31 @@ def view_disks():
 @webapp.route("/models")
 def view_models():
 
-    envs = {"Dev": "dev", "Prod": "prod"}
+    envs = {e: e for e in ALLOWED_ENV}
     form_keys = {
         "pid": "",
-        "env": envs["Dev"],
+        "env": envs["dev"],
         "type": socket_types[socket.SOCK_STREAM],
         "state": "LISTEN",
     }
     form_values = dict(
         (k, request.args.get(k, default_val)) for k, default_val in form_keys.items()
     )
-    models_list, sub_model_info = current_service.get_models_env(filters=form_values)
+    model_assets_info = current_service.get_model_assets(filters=form_values)
+    models_list = []
+    model_infos_sub = {}
+
+    if model_assets_info["model_infos_sub"]:
+        model_infos_sub = model_assets_info["model_infos_sub"]
+        models_list = list(model_infos_sub.keys())
+        model_infos_sub["env"] = model_assets_info["env"]
+
     return render_template(
         "models.html",
         page="models",
         envs=envs,
         models=models_list,
-        sub_model_info=sub_model_info,
+        sub_model_info=model_infos_sub,
         is_xhr=request.headers.get("X-Requested-With"),
         **form_values
     )
@@ -378,14 +387,9 @@ def model_details(modelname, section, env, version):
 
     valid_sections = [
         "overview",
-        "threads",
         "files",
-        "connections",
-        "memory",
         "environment",
-        "children",
         "viewmodel",
-        "restart",
         "model_logs",
     ]
 
@@ -393,13 +397,14 @@ def model_details(modelname, section, env, version):
         errmsg = "Invalid subsection when trying to view model %d" % 1
         return render_template("error.html", error=errmsg), 404
     form_values = {"env": env}
-    models_list, sub_model_info = current_service.get_models_env(filters=form_values)
-    model_details = sub_model_info[modelname]
-    if model_details["model_version_cnt"] > 0:
-        versions = model_details["model_version_list"]
-        max_version = max(versions, key=lambda x: int(re.findall(r"v(\d+)", x)[0]))
+    model_assets_info = current_service.get_model_assets(filters=form_values)
+    model_details = model_assets_info["model_infos_sub"][modelname]
+    model_details["name"] = modelname
+    if len(model_details["version_list"]) > 0:
+        versions = model_details["version_list"]
+        max_version = max(versions, key=lambda x: float(re.findall(r"(\d+.\d+)", x)[0]))
     else:
-        max_version = "v0"
+        max_version = "0.0"
 
     if version == "None":
         version = max_version
@@ -413,18 +418,18 @@ def model_details(modelname, section, env, version):
         "is_xhr": request.headers.get("X-Requested-With"),  # request.is_xhr
     }
 
-    (
-        model_version_files_details,
-        model_version_files,
-    ) = current_service.get_model_version_info(name=modelname, version=version, env=env)
-    context["file_nums"] = len(model_version_files)
+    model_version_files = model_details[version].get("contents", [])
+    context["file_nums"] = 0
+    if len(model_version_files) > 0:
+        if model_details[version].get("size") != "0 KB":
+            context["file_nums"] = len(model_version_files)
 
     if section == "environment":
         penviron = {}
-        recomserver_ports_list = model_details["recomserver_ports"]
-        rewardserver_ports_list = model_details["rewardserver_ports"]
+        recomserver_ports_list = model_details["recom_ports"]
+        rewardserver_ports_list = model_details["reward_ports"]
         penviron["recom_pid_process"] = {}
-        penviron["recom_pid_process"] = {}
+        penviron["reward_pid_process"] = {}
         penviron["reward_pid_list"] = []
         penviron["recom_pid_list"] = []
         penviron["recom_port"] = []
@@ -455,72 +460,10 @@ def model_details(modelname, section, env, version):
 
         context["process_environ"] = penviron
 
-    elif section == "environment2":
-        penviron = {}
-        recomserver_ports_list = model_details["recomserver_ports"]
-        rewardserver_ports_list = model_details["rewardserver_ports"]
-        if len(recomserver_ports_list) > 0:
-            recom_port = recomserver_ports_list[0]
-            cmds_content_cmd, pid_list = current_service.get_process_details_byport(
-                recom_port, "cmd"
-            )
-            if len(cmds_content_cmd) > 0:
-                penviron["RECOM_PORT"] = recom_port
-                penviron["RECOM_CMD"] = cmds_content_cmd[-1]
-                penviron["RECOM_PIDs"] = pid_list
-                penviron["RECOM_WORKERs"] = max(0, len(pid_list) - 1)
-                (
-                    cmds_content_user,
-                    pid_list,
-                ) = current_service.get_process_details_byport(recom_port, "user")
-                penviron["USER"] = cmds_content_user[-1]
-                (
-                    cmds_content_time,
-                    pid_list,
-                ) = current_service.get_process_details_byport(recom_port, "time")
-                penviron["RECOM_TIME"] = cmds_content_time[-1]
-                (
-                    cmds_content_start,
-                    pid_list,
-                ) = current_service.get_process_details_byport(recom_port, "start")
-                penviron["RECOM_START"] = cmds_content_start[-1]
-        if len(rewardserver_ports_list) > 0:
-            reward_port = rewardserver_ports_list[0]
-            cmds_content_cmd, pid_list = current_service.get_process_details_byport(
-                reward_port, "cmd"
-            )
-            if len(cmds_content_cmd) > 0:
-                penviron["REWARD_PORT"] = reward_port
-                penviron["REWARD_CMD"] = cmds_content_cmd[-1]
-                penviron["REWARD_PIDs"] = pid_list
-                penviron["REWARD_WORKERs"] = max(0, len(pid_list) - 1)
-                (
-                    cmds_content_user,
-                    pid_list,
-                ) = current_service.get_process_details_byport(reward_port, "user")
-                # penviron["USER"] = cmds_content_user[-1]
-                (
-                    cmds_content_time,
-                    pid_list,
-                ) = current_service.get_process_details_byport(reward_port, "time")
-                penviron["REWARD_TIME"] = cmds_content_time[-1]
-                (
-                    cmds_content_start,
-                    pid_list,
-                ) = current_service.get_process_details_byport(reward_port, "start")
-                penviron["REWARD_START"] = cmds_content_start[-1]
-
-        context["process_environ"] = penviron
-    elif section == "threads":
-        context["threads"] = "current_service.get_process_threads(pid)"
     elif section == "files":
-        context["files"] = model_version_files_details
-    elif section == "connections":
-        context["connections"] = "current_service.get_process_connections(pid)"
-    elif section == "memory":
-        context["memory_maps"] = "current_service.get_process_memory_maps(pid)"
-    elif section == "children":
-        context["children"] = "current_service.get_process_children(pid)"
+        context["files"] = current_service.get_model_version_file_info(
+            env=env, modelname=modelname, version=version, fnames=model_version_files
+        )
     elif section == "viewmodel":
         # context["viewmodel"] = "current_service.get_process_limits(pid)"
         try:
@@ -573,8 +516,8 @@ def model_details(modelname, section, env, version):
             test = ServiceMgr([modelname], env=env)
             test.start_service()
 
-        recomserver_ports_list = model_details["recomserver_ports"]
-        rewardserver_ports_list = model_details["rewardserver_ports"]
+        recomserver_ports_list = model_details["recom_ports"]
+        rewardserver_ports_list = model_details["reward_ports"]
         context["recom_status"] = "not deployed"
         if len(recomserver_ports_list) > 0:
             recom_port = recomserver_ports_list[0]
@@ -592,10 +535,6 @@ def model_details(modelname, section, env, version):
                 context["reward_status"] = "running"
             else:
                 context["reward_status"] = "failed"
-    elif section == "restart":
-        test = ServiceMgr([modelname], env=env)
-        test.start_service()
-        section = "overview"
 
     elif section == "model_logs":
         try:

@@ -16,7 +16,7 @@ import zerorpc
 from optimx import __version__
 from optimx.node import LocalNode, RemoteNode
 from optimx.web import fromtimestamp, fromtimestamp2
-
+from optimx.config import LOGS_FILES
 
 logger = getLogger("optimx.run")
 
@@ -161,7 +161,7 @@ class OptimXRunner(object):
         app.config.from_envvar("OPTIMX_CONFIG", silent=True)
 
         app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
-        app.config["OPTIMX_LOGS"] = ["/Users/leepand/同步空间/codes/logs/*.log"]
+        app.config["OPTIMX_LOGS"] = LOGS_FILES
 
         if config and isinstance(config, dict):
             app.config.update(config)
