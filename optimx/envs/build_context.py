@@ -37,7 +37,7 @@ def _generate_serverfile(save_dir, server_name, port, workers=4, suffix="sh"):
 
     parent_directory = os.path.dirname(save_dir)
     log_directory = os.path.join(parent_directory, "logs")
-    os.makedirs(log_directory, exist_ok=True)  # create dir if doesn't exist
+    sh.makedirs(log_directory)  # create dir if doesn't exist
 
     if suffix == "sh":
         run_cmd_contents = f"nohup sh {local_server_file} > ../logs/{local_server_file_name}.log 2>&1 &"
@@ -68,7 +68,6 @@ def prebuild_server(
     suffix="sh",
     serving=False,
     model_name=None,
-    server_type="recom",
 ):
     if not isinstance(ports, list):
         logger.error(

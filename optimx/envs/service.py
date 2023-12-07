@@ -4,43 +4,55 @@ from structlog import get_logger
 
 from optimx.config import MODEL_BASE_PATH
 from optimx.utils.addict import Dict
+from optimx.envs.build_context import prebuild_server
+from optimx.ext import YAMLDataSet
+from optimx.assets.remote import StorageProvider
+import traceback
 
 logger = get_logger(__name__)
 
 
 class ServiceMgr:
-    def __init__(self, models, env="dev") -> None:
+    def __init__(
+        self, models, env="dev", provider="local", bucket=MODEL_BASE_PATH
+    ) -> None:
         self.pipes = []
         self.env = env
         self.config_file_name = f"server_{env}.yml"
+        self.bucket = bucket
+        prefix = env
+        self.storage_provider = StorageProvider(
+            provider=provider,
+            bucket=bucket,
+            prefix=prefix,
+        )
+        # storage_provider.get_versions_info("new_model3")
         for model in models:
-            self.pipes.append(Pipe(name=model, profile=env))
+            model_version_list = model.split(":")
+            self.pipes.append(model_version_list)
 
     def start_service(self):
         service_msg = Dict()
         for pipe in self.pipes:
-            latest_version = pipe.mlflow_client.list_model_versions(
-                pipe.name, "Production"
-            )
-            if len(latest_version) > 0:
-                version = f"v{latest_version[0].version}"
-            else:
-                model_ver = pipe.mlflow_client.list_model_versions(pipe.name)
-                if len(model_ver) > 0:
-                    v = model_ver[0]
-                    version = f"v{v}"
+            model_name = pipe[0]
+            try:
+                if len(pipe) > 1:
+                    version = pipe[-1]
                 else:
-                    logger.error(f"no version found of {pipe.name}", env=self.env)
-                    continue
+                    version = self.storage_provider.get_versions_info(model_name)
+            except:
+                logger.error(f"no version found of {pipe[0]}", env=self.env)
+                print(traceback.format_exc())
+                continue
 
-            prod_path = os.path.join(pipe.dir, version)
+            prod_path = os.path.join(self.bucket, model_name, version)
             if_dir = Path(prod_path).is_dir()
             status = "stoped"
             # msg = ""
             if not if_dir:
                 # msg = "生产路径不存在"
                 status = "no_code_path"
-                logging.error(f"no_code_path of {pipe.name}")
+                logger.error(f"no_code_path of {model_name}", env=self.env)
                 continue
             # service_msg[pipe.name]["msg"] = msg
             # service_msg[pipe.name]["status"] = status
@@ -62,10 +74,10 @@ class ServiceMgr:
                     ports,
                     workers=workers,
                     serving=serving,
-                    model_name=pipe.name,
+                    model_name=model_name,
                 )
 
             # make_msg = start_service_bymake(main_code_path=prod_path)
-            service_msg[pipe.name]["msg"] = make_msg
+            service_msg[model_name]["msg"] = make_msg
 
         return service_msg
