@@ -6,6 +6,7 @@ import multiprocessing
 import os
 import sys
 from time import perf_counter, sleep
+import time
 
 import click
 import humanize
@@ -25,8 +26,10 @@ from optimx.utils.serialization import safe_np_dump
 
 import optimx.ext.shellkit as sh
 from optimx.ext import YAMLDataSet
-from optimx.config import SERVER_PORT_CONFIG,MODEL_BASE_PATH
+from optimx.config import SERVER_PORT_CONFIG, MODEL_BASE_PATH, MODEL_SERVER_HOST
 from optimx.ext.prompts.prompt import create_template, readfile, PromptTemplate
+from optimx.utils.shell_utils import get_port_status, start_service
+from optimx.utils.killport import kill9_byport
 
 
 @click.group()
@@ -190,7 +193,7 @@ def describe(models, required_models):
 @click.argument("example")
 @click.argument("models", type=str, nargs=-1, required=False)
 @click.option("--n", "-n", default=100)
-def time(model, example, models, n):
+def time2(model, example, models, n):
     """
     Benchmark a model on an example.
 
@@ -527,6 +530,10 @@ def init(project, model, version):
     print(f"Project {project} is created!")
 
 
+model_host = MODEL_SERVER_HOST["host"]
+model_port = MODEL_SERVER_HOST["port"]
+
+
 @optimx_cli.command("run", no_args_is_help=True)
 @click.option(
     "--service",
@@ -541,7 +548,7 @@ def init(project, model, version):
     "-h",
     help="host of model server service",
     type=str,
-    default="0.0.0.0",
+    default=model_host,
     show_default=True,
 )
 @click.option(
@@ -549,7 +556,7 @@ def init(project, model, version):
     "-p",
     help="port of  model server service",
     type=str,
-    default="5006",
+    default=model_port,
     show_default=True,
 )
 @click.option(
@@ -561,150 +568,36 @@ def init(project, model, version):
 )
 def run(service, host, port, backend):
     """
-    start services: main/mlflow/model server.
+    start services: main/model server.
     """
-    base_path = data_dir()
-    mlopskit_config = os.path.join(base_path, "mlops_config.yml")
-    if os.path.exists(mlopskit_config):
-        logger.info(f"mlopskit config file mlops_config.yml!", path=mlopskit_config)
-    else:
-        logger.info(
-            f"mlopskit config file mlops_config.yml is not exists!",
-            path=mlopskit_config,
-        )
-        YAMLDataSet(mlopskit_config).save(DEFAULT_SERVER_CONFIG)
+    base_path = MODEL_BASE_PATH
 
-        logger.info(
-            f"we use default config info and create file mlops_config.yml!",
-            mlopskit_config=DEFAULT_SERVER_CONFIG,
-        )
-
-    mlflow_workspace = os.path.join(base_path, "mlflow_workspace")
-    sh.mkdir(mlflow_workspace)
-    mlopskit_config_json = YAMLDataSet(mlopskit_config).load()
-    mlflow_url = mlopskit_config_json.get("mlflow_url")
-    model_server_url = mlopskit_config_json.get("model_url")
-    model_server_port = model_server_url.split(":")[-1]
-    mlflow_port = mlflow_url.split(":")[-1]
-    # logger.info(f"mlflow_port_status: {mlflow_port_status}!", port=mlflow_port_status)
-
-    # start mlflow service
-    if service in ["mlflow", "all"]:
-        mlflow_port_status = get_port_status(mlflow_port)
-        if mlflow_port_status == "running":
-            c = input(f"Confirm kill the mlflow port {mlflow_port} (y/n)")
-            if c == "n":
-                return None
-            else:
-                kill9_byport(mlflow_port)
-                time.sleep(1)
-                logger.warning(f"port {mlflow_port} is killed!", name="mlflow service")
-
-        with sh.cd(mlflow_workspace):
-            sh.write(
-                "run.sh",
-                f"""nohup mlflow server  \
-                    --default-artifact-root artifacts \
-                        --backend-store-uri sqlite:///mlflow.db \
-                            --host 0.0.0.0 \
-                                  -p {mlflow_port} >run_mlflow.log 2>&1 &""",
-            )
-            mlflow_run_msg = start_service("sh run.sh")
-
-            logger.info(
-                f"stdout info: {mlflow_run_msg}!",
-                name="mlflow service serving",
-            )
     # start model server
     if service in ["model_server", "all"]:
-        model_server_port_status = get_port_status(model_server_port)
+        model_server_port_status = get_port_status(port=port)
         if model_server_port_status == "running":
-            c = input(f"Confirm kill the model server port {model_server_port} (y/n)")
-            if c == "n":
-                return None
-            else:
-                kill9_byport(model_server_port)
-                time.sleep(1)
-                logger.warning(
-                    f"port {model_server_port} is killed!", name="model server service"
-                )
-        with sh.cd(mlflow_workspace):
-            sh.write(
-                os.path.join(mlflow_workspace, "model_server.py"),
-                "from mlopskit.pastry.dam import Dam\ndam = Dam()\n",
-            )
-
-            # 5005 与HTTPClient().get_config() 中的model_url的ip和port一致
-            sh.write(
-                os.path.join(mlflow_workspace, "run_model_server.sh"),
-                f"uvicorn model_server:dam.http_server --host 0.0.0.0 --port {model_server_port}",
-            )
-
-            model_server_run_msg = start_service(
-                "nohup sh run_model_server.sh > run_model_server.log 2>&1 &"
-            )
-
-            logger.info(
-                f"stdout info: {model_server_run_msg}!",
-                name="model server service serving",
-            )
-    if service in ["main", "all"]:
-        # start main serivce UI
-        if build == "true":
-            print("####### BUILDING FRONTEND #######")
-            with sh.cd(FRONTEND_PATH):
-                # read API.js
-                js_file_path = os.path.join(FRONTEND_PATH, "src/api/api.js")
-                api_file_template = PromptTemplate.from_file(
-                    js_file_path,
-                    input_variables=["host", "port"],
-                    template_format="jinja2",
-                )
-                api_js_contents = api_file_template.format(host=host, port=port)
-                sh.write(js_file_path, api_js_contents)
-
-                build_msg = start_service("npm install && npm run build", timeout=3600)
-                logger.info(
-                    f"build ui info: {build_msg}!",
-                    name="main service build",
-                )
-                index_file_src = os.path.join(FRONTEND_PATH, "dist/index.html")
-                index_file_dst = os.path.join(SERVER_PATH, "templates/index.html")
-                main_files_src = os.path.join(FRONTEND_PATH, "dist")
-                main_files_dst = os.path.join(SERVER_PATH, "static")
-                sh.cp(src=index_file_src, dst=index_file_dst)
-                sh.cp(src=main_files_src, dst=main_files_dst)
-
-            return "build done!"
-
-        main_server_port_status = get_port_status(port)
-        if main_server_port_status == "running":
             c = input(f"Confirm kill the model server port {port} (y/n)")
             if c == "n":
                 return None
             else:
                 kill9_byport(port)
                 time.sleep(1)
-                logger.warning(f"port {port} is killed!", name="model server service")
+                print(f"port {port} is killed! model server service")
+        with sh.cd(base_path):
+            sh.write(
+                os.path.join(base_path, "model_server.py"),
+                "from optimx.assets.drivers.dam import Dam\ndam = Dam()\n",
+            )
+            # 5005 与HTTPClient().get_config() 中的model_url的ip和port一致
+            sh.write(
+                os.path.join(base_path, "run_model_server.sh"),
+                f"uvicorn model_server:dam.http_server --host 0.0.0.0 --port {port}",
+            )
 
-        if backend == "true":
-            _server_host = "0.0.0.0"
-            with sh.cd(mlflow_workspace):
-                main_service_msg = start_service(
-                    script=f"nohup gunicorn --workers=3 -b {_server_host}:{port}  mlopskit.server.wsgi:app >main_server.log 2>&1 &"
-                )
-                logger.info(
-                    f"serving ui info: {main_service_msg}!",
-                    name="main service serving",
-                )
-        else:
-            _server_host = "0.0.0.0"
-            path = os.path.realpath(os.path.dirname(__file__))
-            with sh.cd(path):
-                main_service_msg = start_service(
-                    script=f"gunicorn --workers=3 -b {_server_host}:{port}  server.wsgi:app >>web-predict.log;"
-                )
-                logger.info(
-                    f"serving ui info: {main_service_msg}!",
-                    name="main service serving",
-                )
+            model_server_run_msg = start_service(
+                "nohup sh run_model_server.sh > run_model_server.log 2>&1 &"
+            )
+
+            print(
+                f"stdout info: {model_server_run_msg}! model server service serving",
+            )

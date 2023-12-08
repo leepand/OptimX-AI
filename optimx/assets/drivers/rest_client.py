@@ -45,16 +45,16 @@ class RestClient(SDK):
         super().__init__(host)
         self.name = name
 
-    def push(self, name, version, profile, fnamelocal, filename):
+    def push(self, name, version, env, fnamelocal, filename):
         with open(fnamelocal, "rb") as f:
             _f = {"file": f}
-            self.post(
-                f"/api/git-bus/{self.name}/push",
+            return self.post(
+                f"/api/{self.name}/push",
                 as_json=True,
                 data={
                     "name": name,
                     "version": version,
-                    "profile": str(profile),
+                    "env": str(env),
                     "filename": filename,
                 },
                 files=_f,
