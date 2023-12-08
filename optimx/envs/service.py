@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path, PurePosixPath
 from structlog import get_logger
 
@@ -39,13 +40,19 @@ class ServiceMgr:
                 if len(pipe) > 1:
                     version = pipe[-1]
                 else:
-                    version = self.storage_provider.get_versions_info(model_name)
+                    version_list = self.storage_provider.get_versions_info(model_name)
+                    version = max(
+                        version_list,
+                        key=lambda x: float(re.findall(r"(\d+.\d+)", x)[0]),
+                    )
+
             except:
                 logger.error(f"no version found of {pipe[0]}", env=self.env)
                 print(traceback.format_exc())
                 continue
 
-            prod_path = os.path.join(self.bucket, model_name, version)
+            prod_path = os.path.join(self.bucket, self.env, model_name, version)
+
             if_dir = Path(prod_path).is_dir()
             status = "stoped"
             # msg = ""

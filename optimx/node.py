@@ -82,8 +82,8 @@ class LocalService(object):
                 model_infos["model_infos_sub"] = model_infos_sub
         return model_infos
 
-    def get_models_origin(self):
-        return get_models()
+    def get_models_origin(self, v):
+        return get_models_meta(env=v)
 
     def get_model_version_file_info(self, env, modelname, version, fnames):
         version_files = get_file_info(

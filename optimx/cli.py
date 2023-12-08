@@ -430,7 +430,7 @@ def download(models, required_models):
     "-v",
     help="model version",
     type=str,
-    default="1",
+    default="0.0",
     show_default=True,
 )
 def init(project, model, version):

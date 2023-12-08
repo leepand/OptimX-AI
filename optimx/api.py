@@ -2,6 +2,7 @@ import os
 from typing import Any, Dict, List, Optional, Union
 
 import fastapi
+import requests
 from rich.console import Console
 from structlog import get_logger
 
@@ -242,3 +243,28 @@ def pull_assets(
         model_meta, return_info=True, force_download=force_download
     )
     return assets_info
+
+
+class Client:
+    """
+    Simple implementation of HTTP-based mlopskit runtime client.
+
+    Interface definition is acquired via HTTP GET call to `/interface.json`,
+    method calls are performed via HTTP POST calls to `/<name>`.
+
+    :param host: host of server to connect to, if no host given connects to host `localhost`
+    :param port: port of server to connect to, if no port given connects to port 9000
+    """
+
+    def __init__(self, host=None, port=None):
+        if host is None:
+            host = "0.0.0.0"
+        self.base_url = f'http://{host or "localhost"}:{port or 9000}'
+        super().__init__()
+
+    def predict(self, payload, name="predict/recomserver"):
+        ret = requests.post(f"{self.base_url}/{name}", json=payload)
+        if ret.status_code == 200:
+            return ret.json()
+        else:
+            ret.raise_for_status()

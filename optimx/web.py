@@ -26,9 +26,10 @@ from optimx.model_process import compare_versions
 from optimx.log import Logs
 from optimx.utils.sys_utils import cat_file_content
 from optimx.model_assets import ALLOWED_ENV
+from optimx.config import MODEL_BASE_PATH
 
 from flask_httpauth import HTTPBasicAuth
-from mlopskit.pipe import ServiceMgr
+from optimx import ServiceMgr
 
 auth = HTTPBasicAuth()
 logger = logging.getLogger("optimx.web")
@@ -147,19 +148,20 @@ def index():
 
     netifs = list(current_service.get_network_interfaces().values())
     netifs.sort(key=lambda x: x.get("bytes_sent"), reverse=True)
-    models_all = current_service.get_models_origin()
-    models_dev = models_all.get("dev", {})
-    models_prod = models_all.get("prod", {})
-    models_cnt = max(
-        len(models_dev.get("models", [])), len(models_prod.get("models", []))
-    )
+    models_dev = current_service.get_models_origin("dev")
+    models_prod = current_service.get_models_origin("prod")
+
+    models_cnt = max(len(list(models_dev.keys())), len(list(models_prod.keys())))
     models = {}
     models["models_cnt"] = models_cnt
     model_version_cnt = 0
-    model_sub_info = models_prod.get("sub_model_info", {})
 
-    for model in list(model_sub_info.keys()):
-        model_version_cnt += model_sub_info[model]["model_version_cnt"]
+    for model in list(models_dev.keys()):
+        model_version_cnt += len(models_dev[model]["version_list"])
+
+    for model in list(models_prod.keys()):
+        model_version_cnt += len(models_prod[model]["version_list"])
+
     models["model_version_cnt"] = model_version_cnt
 
     data = {
@@ -316,7 +318,7 @@ def view_networks():
         states=states,
         is_xhr=request.headers.get("X-Requested-With"),  # request.is_xhr,
         num_conns=len(conns),
-        **form_values
+        **form_values,
     )
 
 
@@ -363,7 +365,7 @@ def view_models():
         models=models_list,
         sub_model_info=model_infos_sub,
         is_xhr=request.headers.get("X-Requested-With"),
-        **form_values
+        **form_values,
     )
 
 
@@ -475,15 +477,17 @@ def model_details(modelname, section, env, version):
                 filename = "all"
 
             if ops == "model_logs":
-                model_version_list_details = [
-                    modelv.get("file_path")
-                    for modelv in model_details["model_version_list_details"]
-                    if modelv.get("filename") == version
-                ]
-                if len(model_version_list_details) > 0:
-                    base_path = model_version_list_details[0]
+                version_files_path = None
+                if len(model_version_files) > 0:
+                    version_files_path = model_details[version].get(
+                        "version_files_path"
+                    )
+
+                if version_files_path:
+                    base_path = version_files_path
                 else:
-                    base_path = "./"
+                    base_path = os.path.join(MODEL_BASE_PATH, env, modelname, version)
+                # print(base_path, "base_path")
                 log_path = os.path.join(base_path, "logs") + os.sep
                 if filename == "recom_log":
                     logs = Path(log_path).glob("*recom*.log")
@@ -513,7 +517,7 @@ def model_details(modelname, section, env, version):
     elif section == "overview":
         ops = request.args.get("ops")
         if ops == "restart":
-            test = ServiceMgr([modelname], env=env)
+            test = ServiceMgr([f"{modelname}:{version}"], env=env)
             test.start_service()
 
         recomserver_ports_list = model_details["recom_ports"]

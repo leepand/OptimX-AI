@@ -340,12 +340,19 @@ def fetch_asset(asset, download):
     show_default=True,
 )
 @click.option(
+    "--newversion",
+    help="[minor-major+1?] Push a new major version (1.0, 2.0, etc.)",
+    is_flag=True,
+    default=False,
+    show_default=True,
+)
+@click.option(
     "--toremote", help="to_remote", is_flag=True, default=False, show_default=True
 )
 @click.option(
     "--preview", help="Preview", is_flag=True, default=True, show_default=True
 )
-def push(name, filename, update, bump, toremote, profile, preview):
+def push(name, filename, update, bump, toremote, profile, preview, newversion):
     """
     Push model/version and code from local repo to remote repo.
     Create/Update a new asset.
@@ -379,6 +386,7 @@ def push(name, filename, update, bump, toremote, profile, preview):
             storage_prefix=profile,
             bump_major=bump,
             dry_run=preview,
+            newversion=newversion,
         )
 
 
@@ -439,7 +447,9 @@ def new_push(asset_path, asset_spec, storage_prefix, dry_run):
     print("Aborting.")
 
 
-def update_push(asset_path, asset_spec, storage_prefix, bump_major, dry_run):
+def update_push(
+    asset_path, asset_spec, storage_prefix, bump_major, dry_run, newversion
+):
     _check_asset_file_number(asset_path)
     bucket_name = data_dir()
     sh.mkdir(bucket_name)
@@ -469,11 +479,16 @@ def update_push(asset_path, asset_spec, storage_prefix, bump_major, dry_run):
     )
 
     print(update_params["display"])
-    new_version = spec.versioning.increment_version(
-        spec.sort_versions(version_list),
-        update_params["params"],
-    )
-    print(f"Push a new asset version `{new_version}` " f"for `{spec.name}`?")
+
+    if not newversion:
+        new_version = version_list[0]
+        print(f"Update a asset version `{new_version}` " f"for `{spec.name}`?")
+    else:
+        new_version = spec.versioning.increment_version(
+            spec.sort_versions(version_list),
+            update_params["params"],
+        )
+        print(f"Push a new asset version `{new_version}` " f"for `{spec.name}`?")
 
     response = click.prompt("[y/N]")
     if response == "y":

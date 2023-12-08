@@ -37,7 +37,7 @@ def _generate_serverfile(save_dir, server_name, port, workers=4, suffix="sh"):
 
     parent_directory = os.path.dirname(save_dir)
     log_directory = os.path.join(parent_directory, "logs")
-    sh.makedirs(log_directory)  # create dir if doesn't exist
+    sh.mkdir(log_directory)  # create dir if doesn't exist
 
     if suffix == "sh":
         run_cmd_contents = f"nohup sh {local_server_file} > ../logs/{local_server_file_name}.log 2>&1 &"

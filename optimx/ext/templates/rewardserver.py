@@ -29,8 +29,11 @@ class RewardServer(Model):
             return items
         except:
             # 将异常堆栈信息写入错误日志文件
-            error_content = [f"{self.model_name}-error", str(traceback.format_exc())]
-            log_reward_error(error_content)
+            error_content = [
+                f"{self.model_name}:{request_id}-error",
+                str(traceback.format_exc()),
+            ]
+            log_reward_error([error_content])
             return items
 
 

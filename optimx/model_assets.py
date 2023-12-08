@@ -79,7 +79,7 @@ def get_models_meta(env, working_dir=DEFAULT_WORKING_DIR, provider="local"):
         env_base_path = os.path.join(working_dir, env)
         for model_asset_name, versions_list in storage_provider.iterate_assets():
             # print(asset_name, versions_list,storage_provider.get_versions_info(asset_name))
-            model_infos[model_asset_name]["version_list"] = versions_list
+            model_infos[model_asset_name]["version_list"] = list(set(versions_list))
             max_version = "0.0"
             if len(versions_list) > 0:
                 max_version = max(
@@ -90,10 +90,30 @@ def get_models_meta(env, working_dir=DEFAULT_WORKING_DIR, provider="local"):
                     model_version_info = storage_provider.get_asset_meta(
                         model_asset_name, version
                     )
-                    model_infos[model_asset_name][version] = model_version_info
+                    ori_contents = model_version_info.get("contents", [])
                     version_files_path = os.path.join(
                         env_base_path, model_asset_name, version
                     )
+                    model_infos[model_asset_name][version][
+                        "version_files_path"
+                    ] = version_files_path
+                    # asset_path="/Users/leepand/.optimx/dev/persional_model/0.1"
+                    # asset_path += "/" if not asset_path.endswith("/") else ""
+                    version_files_path += (
+                        "/" if not version_files_path.endswith("/") else ""
+                    )
+
+                    ori_contents = sorted(
+                        f[len(version_files_path) :]
+                        for f in glob.iglob(
+                            os.path.join(version_files_path, "**/*"), recursive=True
+                        )
+                        if os.path.isfile(f) and not f.endswith("pyc")
+                    )
+                    model_version_info["contents"] = ori_contents
+
+                    model_infos[model_asset_name][version] = model_version_info
+
                     model_infos[model_asset_name][version]["size"] = "0 KB"
                     if os.path.exists(version_files_path):
                         model_infos[model_asset_name][version][
