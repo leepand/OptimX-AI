@@ -79,7 +79,9 @@ def get_models_meta(env, working_dir=DEFAULT_WORKING_DIR, provider="local"):
         env_base_path = os.path.join(working_dir, env)
         for model_asset_name, versions_list in storage_provider.iterate_assets():
             # print(asset_name, versions_list,storage_provider.get_versions_info(asset_name))
-            model_infos[model_asset_name]["version_list"] = list(set(versions_list))
+            model_infos[model_asset_name]["version_list"] = sorted(
+                list(set(versions_list)), key=str, reverse=True
+            )
             max_version = "0.0"
             if len(versions_list) > 0:
                 max_version = max(

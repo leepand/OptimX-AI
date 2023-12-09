@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css' ) }}">
+    <script src="https://kit.fontawesome.com/a58f8dca66.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SingUp</title>
+</head>
+
+<div class="bg-img">
+    <div class="content">
+      <header>SingUp</header>
+      <form action="/sing-up" method="post">
+        <div class="field">
+          <span class="fa-solid fa-user"></span>
+          <input type="text" name="fullname" required placeholder="Full Name">
+        </div>
+        <div class="field space">
+          <span class="fa-solid fa-envelope"></span>
+          <input type="email" name="email" class="pass-key" required placeholder="Email">
+        </div>
+        <div class="field space">
+          <span class="fa fa-lock"></span>
+          <input type="password" name="password" class="pass-key" required placeholder="Password">
+        </div>
+        <div class="pass">
+          <br>
+        </div>
+        <div class="field">
+          <input type="submit" value="Create Account">
+        </div>
+      </form>
+      <br>
+      <div class="signup">Already have account?
+          <br>
+        <a href="/login">Login Now</a>
+        <br>
+        <p>{{status}}</p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

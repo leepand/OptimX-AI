@@ -42,6 +42,7 @@
                             {% for id, n in nodes.items() %}
                                 <li><a href="{{ url_for(".index", node=id) }}">{{ n.name }} ({{ id }})</a></li>
                             {% endfor %}
+                            <li><a href="{{ url_for(".logout") }}">{{ user_info }} (Logout)</a></li>
                         </ul>
                     </div>
                 </div>

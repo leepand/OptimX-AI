@@ -4,12 +4,17 @@ import socket
 import re
 import os
 from datetime import datetime, timedelta
+from hashlib import md5
 import uuid
 import locale
 import random
 from flask import (
     render_template,
+    after_this_request,
     request,
+    redirect,
+    url_for,
+    make_response,
     session,
     jsonify,
     Response,
@@ -30,6 +35,7 @@ from optimx.config import MODEL_BASE_PATH
 
 from flask_httpauth import HTTPBasicAuth
 from optimx import ServiceMgr
+from .database import DB
 
 auth = HTTPBasicAuth()
 logger = logging.getLogger("optimx.web")
@@ -69,7 +75,16 @@ def fromtimestamp2(value, dateformat="%Y-%m-%d %H:%M:%S"):
 
 @webapp.context_processor
 def inject_nodes():
-    return {"current_node": current_node, "nodes": current_app.optimx.get_nodes()}
+    user_info = DB.read(request.cookies.get("email"))
+    if user_info:
+        user_info = [0][0]
+    else:
+        user_info = "None"
+    return {
+        "current_node": current_node,
+        "nodes": current_app.optimx.get_nodes(),
+        "user_info": user_info,
+    }
 
 
 @webapp.context_processor
@@ -92,6 +107,35 @@ def add_node(endpoint, values):
 @webapp.before_request
 def add_node():
     g.node = request.args.get("node", current_app.optimx.LOCAL_NODE)
+
+
+# @webapp.before_request
+def check_session():
+    UID, PID, Session_code, email = (
+        request.cookies.get("UID"),
+        request.cookies.get("PID"),
+        request.cookies.get("Session_code"),
+        request.cookies.get("email"),
+    )
+    if UID == None and PID == None and email == None and Session_code == None:
+        return "not_logged"
+    elif not email == None and email!='':
+        session_check = DB.get_session(email)
+        if (
+            UID == session_check[0]
+            and PID == session_check[1]
+            and email == session_check[2]
+            and Session_code == session_check[3]
+        ):
+            return "logged"
+        else:
+            request.cookies.pop("UID", None)
+            request.cookies.pop("PID", None)
+            request.cookies.pop("email", None)
+            request.cookies.pop("Session_code", None)
+            return "session_cleared"
+    else:
+        return "not_logged"
 
 
 @webapp.before_request
@@ -141,44 +185,151 @@ def access_denied(e):
     return render_template("error.html", error=errmsg), 404
 
 
+@webapp.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        UID, PID, Session_code, email = (
+            request.cookies.get("UID"),
+            request.cookies.get("PID"),
+            request.cookies.get("Session_code"),
+            request.cookies.get("email"),
+        )
+        if UID == None and PID == None and email == None and Session_code == None:
+            return render_template("login.html")
+        elif not email == None and email!='':
+            session_check = DB.get_session(email)
+            if (
+                UID == session_check[0]
+                and PID == session_check[1]
+                and email == session_check[2]
+                and Session_code == session_check[3]
+            ):
+                #  return redirect(url_for("optimx.index"))
+                return render_template("login.html")
+            else:
+                request.cookies.pop("UID", None)
+                request.cookies.pop("PID", None)
+                request.cookies.pop("email", None)
+                request.cookies.pop("Session_code", None)
+                return render_template("login.html")
+        else:
+            return render_template("login.html")
+    elif request.method == "POST":
+        email = request.form.get("email")
+        paswd = request.form.get("password")
+        check_login = DB.read(email)
+        if check_login == "User not found":
+            return render_template("login.html", status="Account not registered.")
+        else:
+            if md5(paswd.encode()).hexdigest() == DB.read(email)[0][2]:
+                cookies_set = DB.get_session(email)
+                user_info = cookies_set[0][0]
+                resp = make_response(
+                    redirect(url_for("optimx.index", user_info=user_info))
+                )  # return user details
+                resp.set_cookie("UID", cookies_set[0])
+                resp.set_cookie("PID", cookies_set[1])
+                resp.set_cookie("email", cookies_set[2])
+                resp.set_cookie("Session_code", cookies_set[3])
+                return resp
+            else:
+                return render_template("login.html", status="Wrong email and password.")
+    else:
+        return redirect(url_for("login"))
+
+
+@webapp.route("/logout", methods=["POST", "GET"])
+def logout():
+    if request.method == "GET":
+        @after_this_request
+        def after_index(response):
+            response.set_cookie("UID", '')
+            response.set_cookie("PID", '')
+            response.set_cookie("email", '')
+            response.set_cookie("Session_code", '')
+
+            return response
+
+        return redirect(url_for("optimx.home"))
+    elif request.method == "POST":
+        resp = make_response(redirect(url_for("optimx.home")))
+        resp.delete_cookie("UID")
+        resp.delete_cookie("PID")
+        resp.delete_cookie("email")
+        resp.delete_cookie("Session_code")
+        return resp
+
+
+@webapp.route("/sing-up", methods=["GET", "POST"])
+def singup():
+    if request.method == "GET":
+        result = check_session()
+        if result == "not_logged":
+            return render_template("singup.html"), 200
+        else:
+            # return redirect(url_for("optimx.index"))
+            return render_template("singup.html"), 200
+    elif request.method == "POST":
+        fullName = request.form.get("fullname")
+        Email = request.form.get("email")
+        Password = request.form.get("password")
+        confirm = DB.create(fullName, Email, Password)
+        if confirm == 201:
+            return render_template("login.html", status="Account created sucessfull.")
+        elif confirm == 302:
+            return render_template("singup.html", status="Account already registered.")
+
+
+@webapp.route("/home")
+# @auth.login_required
+def home():
+    return render_template("home.html")
+
+
 @webapp.route("/")
-@auth.login_required
+# @auth.login_required
 def index():
-    sysinfo = current_service.get_sysinfo()
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
+    elif result == "logged":
+        user_info = DB.read(request.cookies.get("email"))[0][0]
+        sysinfo = current_service.get_sysinfo()
 
-    netifs = list(current_service.get_network_interfaces().values())
-    netifs.sort(key=lambda x: x.get("bytes_sent"), reverse=True)
-    models_dev = current_service.get_models_origin("dev")
-    models_prod = current_service.get_models_origin("prod")
+        netifs = list(current_service.get_network_interfaces().values())
+        netifs.sort(key=lambda x: x.get("bytes_sent"), reverse=True)
+        models_dev = current_service.get_models_origin("dev")
+        models_prod = current_service.get_models_origin("prod")
 
-    models_cnt = max(len(list(models_dev.keys())), len(list(models_prod.keys())))
-    models = {}
-    models["models_cnt"] = models_cnt
-    model_version_cnt = 0
+        models_cnt = max(len(list(models_dev.keys())), len(list(models_prod.keys())))
+        models = {}
+        models["models_cnt"] = models_cnt
+        model_version_cnt = 0
 
-    for model in list(models_dev.keys()):
-        model_version_cnt += len(models_dev[model]["version_list"])
+        for model in list(models_dev.keys()):
+            model_version_cnt += len(models_dev[model]["version_list"])
 
-    for model in list(models_prod.keys()):
-        model_version_cnt += len(models_prod[model]["version_list"])
+        for model in list(models_prod.keys()):
+            model_version_cnt += len(models_prod[model]["version_list"])
 
-    models["model_version_cnt"] = model_version_cnt
+        models["model_version_cnt"] = model_version_cnt
+        # print(user_info,"user_info")
+        data = {
+            "models": models,
+            "load_avg": sysinfo["load_avg"],
+            "num_cpus": sysinfo["num_cpus"],
+            "memory": current_service.get_memory(),
+            "swap": current_service.get_swap_space(),
+            "disks": current_service.get_disks(),
+            "cpu": current_service.get_cpu(),
+            "users": current_service.get_users(),
+            "net_interfaces": netifs,
+            "page": "overview",
+            "user_info": user_info,
+            "is_xhr": request.headers.get("X-Requested-With"),
+        }
 
-    data = {
-        "models": models,
-        "load_avg": sysinfo["load_avg"],
-        "num_cpus": sysinfo["num_cpus"],
-        "memory": current_service.get_memory(),
-        "swap": current_service.get_swap_space(),
-        "disks": current_service.get_disks(),
-        "cpu": current_service.get_cpu(),
-        "users": current_service.get_users(),
-        "net_interfaces": netifs,
-        "page": "overview",
-        "is_xhr": request.headers.get("X-Requested-With"),
-    }
-
-    return render_template("index.html", **data)
+        return render_template("index.html", **data)
 
 
 @webapp.route(
@@ -188,6 +339,9 @@ def index():
 @webapp.route("/processes/<string:sort>/<string:order>")
 @webapp.route("/processes/<string:sort>/<string:order>/<string:filter>")
 def processes(sort="pid", order="asc", filter="user"):
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     procs = current_service.get_process_list()
     num_procs = len(procs)
 
@@ -214,6 +368,9 @@ def processes(sort="pid", order="asc", filter="user"):
 @webapp.route("/process/<int:pid>", defaults={"section": "overview"})
 @webapp.route("/process/<int:pid>/<string:section>")
 def process(pid, section):
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     valid_sections = [
         "overview",
         "threads",
@@ -265,6 +422,9 @@ def process(pid, section):
 
 @webapp.route("/network")
 def view_networks():
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     netifs = list(current_service.get_network_interfaces().values())
     netifs.sort(key=lambda x: x.get("bytes_sent"), reverse=True)
 
@@ -324,6 +484,9 @@ def view_networks():
 
 @webapp.route("/disks")
 def view_disks():
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     disks = current_service.get_disks(all_partitions=True)
     io_counters = list(current_service.get_disks_counters().items())
     io_counters.sort(key=lambda x: x[1]["read_count"], reverse=True)
@@ -338,7 +501,9 @@ def view_disks():
 
 @webapp.route("/models")
 def view_models():
-
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     envs = {e: e for e in ALLOWED_ENV}
     form_keys = {
         "pid": "",
@@ -375,6 +540,9 @@ def view_models():
 )
 @webapp.route("/model/<modelname>/<string:version>/<string:env>/<string:section>/")
 def model_details(modelname, section, env, version):
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     filename = request.args.get("filename")
     seek_tail = request.args.get("seek_tail", "1") != "0"
     session_key = session.get("client_id")
@@ -575,6 +743,9 @@ def model_details(modelname, section, env, version):
 
 @webapp.route("/logs")
 def view_logs():
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     available_logs = list(current_service.get_logs())
     # available_logs.sort(cmp=lambda x1, x2: locale.strcoll(x1['path'], x2['path']))
 
@@ -588,6 +759,9 @@ def view_logs():
 
 @webapp.route("/log")
 def view_log():
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     filename = request.args["filename"]
     seek_tail = request.args.get("seek_tail", "1") != "0"
     session_key = session.get("client_id")
@@ -612,6 +786,9 @@ def view_log():
 
 @webapp.route("/log/search")
 def search_log():
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     filename = request.args["filename"]
     query_text = request.args["text"]
     session_key = session.get("client_id")
@@ -625,6 +802,9 @@ def search_log():
 
 @webapp.route("/register")
 def register_node():
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     name = request.args["name"]
     port = request.args["port"]
     host = request.remote_addr
@@ -635,6 +815,9 @@ def register_node():
 
 @webapp.route("/api/token")
 def login_token():
+    result = check_session()
+    if result == "not_logged":
+        return render_template("home.html")
     username = request.args["username"]
     # query_text = request.args['text']
     # session_key = session.get('client_id')

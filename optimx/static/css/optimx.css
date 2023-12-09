@@ -60,6 +60,13 @@ a:hover {
     width:50%;
 }
 
+#optimx .header .top-nav .user-info {
+    padding-top: 18px;
+    margin-right: 0px;
+    display:inline-block;
+    vertical-align: top;
+}
+
 #optimx .header .top-nav .host-info .name span.glyphicon {
     color: #adadad;
     line-height: 24px;

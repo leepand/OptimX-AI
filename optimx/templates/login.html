@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="stylesheet" href="{{ url_for('.static', filename='css/login.css' ) }}">
+  <script src="https://kit.fontawesome.com/a58f8dca66.js" crossorigin="anonymous"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+</head>
+
+<div class="bg-img">
+  <div class="content">
+    <header>Login</header>
+    <form action="/login" method="post">
+      <div class="field">
+        <span class="fa-solid fa-envelope"></span>
+        <input type="email" name="email" required placeholder="Email">
+      </div>
+      <div class="field space">
+        <span class="fa fa-lock"></span>
+        <input type="password" class="pass-key" name="password" required placeholder="Password">
+      </div>
+      <div class="pass">
+        <br>
+      </div>
+      <div class="field">
+        <input type="submit" value="LOGIN">
+      </div>
+    </form>
+    <br>
+    <div class="signup">Don't have account?
+      <br>
+      <a href="/sing-up">Signup Now</a>
+      <br>
+      <p>{{status}}</p>
+    </div>
+  </div>
+</div>
+</body>
+
+</html>

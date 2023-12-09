@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css' ) }}">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{user_info[0][0]}}</title>
+</head>
+<body>
+    
+    <div class="container">
+        <img src="{{ url_for('static', filename='assest/2655727.jpg' ) }}" alt="" class="cover-pic">
+        <img src="{{ url_for('static', filename='assest/2098515.jpg' ) }}" alt="" class="user-icon">
+        <h2>{{user_info[0][0]}}</h3>
+            <div class="bio">
+                <P>{{user_info[0][1]}}<br>Never Forgive anyone <br>Always stay away from complicated things <br> June 22,2021
+                </P>
+            </div>
+                  <form action="/logout" method="post">
+                      <input type="submit" value="Logout">
+                  </form> 
+    </div>
+</body>
+</html>
