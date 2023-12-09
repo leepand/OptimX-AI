@@ -24,6 +24,7 @@ SERVER_PORT_CONFIG = {
 
 MODEL_BASE_PATH = data_dir()
 MODEL_SERVER_HOST = {"host": "0.0.0.0", "port": 5005}
+MAIN_SERVER_PORT = 8911
 base_logs_path = os.path.join(MODEL_BASE_PATH, "model_logs")
 sh.mkdir(base_logs_path)
 

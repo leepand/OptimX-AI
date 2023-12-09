@@ -247,7 +247,7 @@ def pull_assets(
 
 class Client:
     """
-    Simple implementation of HTTP-based mlopskit runtime client.
+    Simple implementation of HTTP-based optimx runtime client.
 
     Interface definition is acquired via HTTP GET call to `/interface.json`,
     method calls are performed via HTTP POST calls to `/<name>`.

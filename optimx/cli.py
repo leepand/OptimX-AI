@@ -26,7 +26,12 @@ from optimx.utils.serialization import safe_np_dump
 
 import optimx.ext.shellkit as sh
 from optimx.ext import YAMLDataSet
-from optimx.config import SERVER_PORT_CONFIG, MODEL_BASE_PATH, MODEL_SERVER_HOST
+from optimx.config import (
+    SERVER_PORT_CONFIG,
+    MODEL_BASE_PATH,
+    MODEL_SERVER_HOST,
+    MAIN_SERVER_PORT,
+)
 from optimx.ext.prompts.prompt import create_template, readfile, PromptTemplate
 from optimx.utils.shell_utils import get_port_status, start_service
 from optimx.utils.killport import kill9_byport
@@ -560,13 +565,13 @@ model_port = MODEL_SERVER_HOST["port"]
     show_default=True,
 )
 @click.option(
-    "--backend",
-    help="run backend of model server service",
+    "--mainport",
+    help="main service port",
     type=str,
-    default="false",
+    default=MAIN_SERVER_PORT,
     show_default=True,
 )
-def run(service, host, port, backend):
+def run(service, host, port, mainport):
     """
     start services: main/model server.
     """
@@ -600,4 +605,24 @@ def run(service, host, port, backend):
 
             print(
                 f"stdout info: {model_server_run_msg}! model server service serving",
+            )
+    if service in ["main", "all"]:
+        # start main serivce UI
+        main_server_port_status = get_port_status(mainport)
+        if main_server_port_status == "running":
+            c = input(f"Confirm kill the main server port {mainport} (y/n)")
+            if c == "n":
+                return None
+            else:
+                kill9_byport(port)
+                time.sleep(1)
+                print(f"port {port} is killed! model server service")
+        _server_host = "0.0.0.0"
+        with sh.cd(base_path):
+            process_script = f"optimxserver -p {mainport} > main_server.log 2>&1 &"
+            main_service_msg = start_service(
+                script=f"nohup gunicorn --workers=3 -b {_server_host}:{mainport} {process_script}"
+            )
+            print(
+                f"serving ui info: {main_service_msg}! main service serving",
             )

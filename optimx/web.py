@@ -119,7 +119,7 @@ def check_session():
     )
     if UID == None and PID == None and email == None and Session_code == None:
         return "not_logged"
-    elif not email == None and email!='':
+    elif not email == None and email != "":
         session_check = DB.get_session(email)
         if (
             UID == session_check[0]
@@ -196,7 +196,7 @@ def login():
         )
         if UID == None and PID == None and email == None and Session_code == None:
             return render_template("login.html")
-        elif not email == None and email!='':
+        elif not email == None and email != "":
             session_check = DB.get_session(email)
             if (
                 UID == session_check[0]
@@ -241,12 +241,13 @@ def login():
 @webapp.route("/logout", methods=["POST", "GET"])
 def logout():
     if request.method == "GET":
+
         @after_this_request
         def after_index(response):
-            response.set_cookie("UID", '')
-            response.set_cookie("PID", '')
-            response.set_cookie("email", '')
-            response.set_cookie("Session_code", '')
+            response.set_cookie("UID", "")
+            response.set_cookie("PID", "")
+            response.set_cookie("email", "")
+            response.set_cookie("Session_code", "")
 
             return response
 

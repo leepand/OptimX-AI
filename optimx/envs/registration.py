@@ -70,16 +70,16 @@ def get_env_id(ns: Optional[str], name: str, version: Optional[int]) -> str:
 
 @dataclass
 class EnvSpec:
-    """A specification for creating environments with `mlopskit.make`.
-    * id: The string used to create the environment with `mlopskit.make`
+    """A specification for creating environments with `optimx.make`.
+    * id: The string used to create the environment with `optimx.make`
     * entry_point: The location of the environment to create from
     * reward_threshold: The reward threshold for completing the environment.
     * nondeterministic: If the observation of an environment cannot be repeated with the same initial state, random number generator state and actions.
     * max_episode_steps: The max number of steps that the environment can take before truncation
     * order_enforce: If to enforce the order of `reset` before `step` and `render` functions
     * autoreset: If to automatically reset the environment on episode end
-    * disable_env_checker: If to disable the environment checker wrapper in `mlopskit.make`, by default False (runs the environment checker)
-    * kwargs: Additional keyword arguments passed to the environments through `mlopskit.make`
+    * disable_env_checker: If to disable the environment checker wrapper in `optimx.make`, by default False (runs the environment checker)
+    * kwargs: Additional keyword arguments passed to the environments through `optimx.make`
     """
 
     id: str
