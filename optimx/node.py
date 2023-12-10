@@ -9,7 +9,6 @@ from optimx.log import Logs
 from optimx.helpers import socket_families, socket_types
 from optimx.net import get_interface_addresses, NetIOCounters
 from optimx.utils.sys_utils import get_process_details, get_pid_from_port
-from optimx.model_process import get_models, get_model_version
 
 from optimx.model_assets import get_models_meta, get_file_info, ALLOWED_ENV
 
@@ -97,66 +96,6 @@ class LocalService(object):
     def get_process_details_byport(self, port, cmd_type):
         cmds_content, pid_list = get_process_details(strport=port, return_type=cmd_type)
         return cmds_content, pid_list
-
-    def get_model_version_info(self, name, version, env):
-        return get_model_version(name, version, env)
-
-    def get_models_env(self, filters=None):
-        filters = filters or {}
-        models = get_models()
-        sub_model_info = {}
-        models_list = []
-        # print(filters, "filters")
-        if filters.get("env") == "":
-            filters["env"] = ["dev", "prod"]
-        for k, v in filters.items():
-            if isinstance(v, list):
-                for sub_v in v:
-                    if sub_v in list(models.keys()):
-                        models_list = models[sub_v].get("models")
-                        sub_model_info = models[sub_v].get("sub_model_info")
-                        if sub_model_info is not None:
-                            for model in models_list:
-                                sub_model_info[model]["env"] = sub_v
-                                server_info = sub_model_info[model].get("server_info")
-                                if server_info is not None:
-                                    sub_model_info[model][
-                                        "recomserver_ports"
-                                    ] = server_info[f"recom_ports_{sub_v}"]
-                                    sub_model_info[model][
-                                        "rewardserver_ports"
-                                    ] = server_info[f"reward_ports_{sub_v}"]
-                                else:
-                                    sub_model_info[model]["recomserver_ports"] = []
-                                    sub_model_info[model]["rewardserver_ports"] = []
-                            else:
-                                sub_model_info["rewardserver_ports"] = []
-                                sub_model_info["recomserver_ports"] = []
-                        # break
-            else:
-                if v in list(models.keys()):
-                    models_list = models[v].get("models")
-                    sub_model_info = models[v].get("sub_model_info")
-                    if sub_model_info is not None:
-                        for model in models_list:
-                            sub_model_info[model]["env"] = v
-                            server_info = sub_model_info[model].get("server_info")
-                            if server_info is not None:
-                                sub_model_info[model][
-                                    "recomserver_ports"
-                                ] = server_info[f"recom_ports_{v}"]
-                                sub_model_info[model][
-                                    "rewardserver_ports"
-                                ] = server_info[f"reward_ports_{v}"]
-                            else:
-                                sub_model_info[model]["recomserver_ports"] = []
-                                sub_model_info[model]["rewardserver_ports"] = []
-                        else:
-                            sub_model_info["rewardserver_ports"] = []
-                            sub_model_info["recomserver_ports"] = []
-                    break
-
-        return models_list, sub_model_info
 
     def get_sysinfo(self):
         uptime = int(time.time() - psutil.boot_time())

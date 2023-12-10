@@ -25,7 +25,7 @@ class PromptTemplate:
 
         .. code-block:: python
 
-            from mlopskit.ext.prompts import PromptTemplate
+            from optimx.ext.prompts import PromptTemplate
 
             # Instantiation using from_template (recommended)
             prompt = PromptTemplate.from_template("Say {foo}")

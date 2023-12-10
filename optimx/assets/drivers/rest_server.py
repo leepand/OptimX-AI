@@ -74,7 +74,7 @@ async def push_model(
             parent_directory = os.path.dirname(remotefile)
             sh.mkdir(parent_directory)
 
-            # filename = await save_file(file, remotefile)
+            filename = await save_file(file, remotefile)
 
         return {"status": "ok", "details": f"model repo {remotefile} is created!"}
     except:

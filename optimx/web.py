@@ -27,7 +27,6 @@ import traceback
 
 from werkzeug.local import LocalProxy
 from optimx.helpers import socket_families, socket_types
-from optimx.model_process import compare_versions
 from optimx.log import Logs
 from optimx.utils.sys_utils import cat_file_content
 from optimx.model_assets import ALLOWED_ENV
@@ -77,7 +76,7 @@ def fromtimestamp2(value, dateformat="%Y-%m-%d %H:%M:%S"):
 def inject_nodes():
     user_info = DB.read(request.cookies.get("email"))
     if user_info:
-        user_info = [0][0]
+        user_info = user_info[0][0]
     else:
         user_info = "None"
     return {
