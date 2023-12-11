@@ -10,6 +10,7 @@ SHA_TZ = timezone(
     timedelta(hours=8),
     name="Asia/Shanghai",
 )
+MODEL_ENV = "dev"
 
 
 def get_bj_day():

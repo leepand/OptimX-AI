@@ -8,20 +8,22 @@ import numpy as np
 import os
 import json
 
-from utils import debug_log
+from utils import debug_log, MODEL_ENV
 
 
 class RecomServer(Model):
-    CONFIGURATIONS = {"recomserver": {"env": "dev"}}
+    CONFIGURATIONS = {"recomserver": {"env": MODEL_ENV}}
 
     def _load(self):
         self.model_name = f"{{model_name}}"
         self.debug_db = make(
-            "cache/feature_store-v1", db_name="debug_tests.db", env="dev"
+            "cache/feature_store-v1", db_name="debug_tests.db", env=MODEL_ENV
         )
 
         self.model_db = make(
-            "cache/{{model_name}}-v{{version}}", db_name="{{model_name}}.db", env="dev"
+            "cache/{{model_name}}-v{{version}}",
+            db_name="{{model_name}}.db",
+            env=MODEL_ENV,
         )
 
     def _predict(self, items):

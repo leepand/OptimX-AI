@@ -7,19 +7,22 @@ import traceback
 import numpy as np
 import json
 import os
+from utils import MODEL_ENV
 
 
 class RewardServer(Model):
-    CONFIGURATIONS = {"rewardserver": {"env": "dev"}}
+    CONFIGURATIONS = {"rewardserver": {"env": MODEL_ENV}}
 
     def _load(self):
         self.model_name = f"{{model_name}}"
         self.debug_db = make(
-            "cache/feature_store-v1", db_name="debug_tests.db", env="dev"
+            "cache/feature_store-v1", db_name="debug_tests.db", env=MODEL_ENV
         )
 
         self.model_db = make(
-            "cache/{{model_name}}-v{{version}}", db_name="{{model_name}}.db", env="dev"
+            "cache/{{model_name}}-v{{version}}",
+            db_name="{{model_name}}.db",
+            env=MODEL_ENV,
         )
 
     def _predict(self, items):
