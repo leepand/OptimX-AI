@@ -152,6 +152,7 @@ class ModelWithAsset(Model):
 
 #### 模型资产的部署 
 
+```
 optimx assets push --name spinux_strategy_recom --profile dev --filename spinux_strategy_recom --preview --update
 
   --name TEXT      model name  [required]
@@ -163,7 +164,7 @@ optimx assets push --name spinux_strategy_recom --profile dev --filename spinux_
   --newversion     [minor-major+1?] Push a new major version (1.0, 2.0, etc.)
   --toremote       to_remote
   --preview        Preview  [default: True]
-
+```
 
 ### Configuring models
 
