@@ -150,6 +150,21 @@ class ModelWithAsset(Model):
 - 将文件写入资产目录（由ASSETS_DIR控制）
 - 相应地设置Model.asset_path属性。
 
+#### 模型资产的部署 
+
+optimx assets push --name spinux_strategy_recom --profile dev --filename spinux_strategy_recom --preview --update
+
+  --name TEXT      model name  [required]
+  --profile TEXT   env name  [default: dev; required]
+  --filename TEXT  file/dir name to push  [required]
+  --update         Update an existing asset using versioning system
+                   [required]
+  --bump           [minor-major] Push a new major version (1.0, 2.0, etc.)
+  --newversion     [minor-major+1?] Push a new major version (1.0, 2.0, etc.)
+  --toremote       to_remote
+  --preview        Preview  [default: True]
+
+
 ### Configuring models
 
 随着模型变得更加复杂，它们会附加到不同的资产或其他模型。我们需要通过ModelLibrary对象来实例化它们，该对象将为我们处理所有这些事情。
