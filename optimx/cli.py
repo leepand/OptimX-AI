@@ -614,9 +614,9 @@ def run(service, host, port, mainport):
             if c == "n":
                 return None
             else:
-                kill9_byport(port)
+                kill9_byport(mainport)
                 time.sleep(1)
-                print(f"port {port} is killed! model server service")
+                print(f"port {mainport} is killed! model server service")
         _server_host = "0.0.0.0"
         with sh.cd(base_path):
             process_script = f"optimxserver -p {mainport} > main_server.log 2>&1 &"
