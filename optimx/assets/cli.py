@@ -619,11 +619,11 @@ def deploy(name, version, local_path, filename, team_repo_path):
     else:
         rest_client = RestClient()
 
-    rest_client.deploy(
+    resp = rest_client.deploy(
         name=name,
         version=version,
         local_path=local_path,
         filename=filename,
         server_base_path=team_repo_path,
     )
-    print("Aborting.")
+    print(resp)

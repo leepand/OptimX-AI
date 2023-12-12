@@ -153,13 +153,13 @@ async def deploy_model(
             cache_path = os.path.join(_server_base_path, name, ".cache")
             sh.mkdir(cache_path)
             remotefile = os.path.join(cache_path, f"{filename}.tgz")
-            parent_directory = os.path.dirname(remotefile)
-            sh.mkdir(parent_directory)
-            filename = await save_file(file, remotefile)
+            sh.mkdir(model_path)
+            _filename = await save_file(file, remotefile)
             dest_path = remotefile
-            save_path = os.path.join(cache_path, filename)
+            save_path = cache_path
+            sh.rm(os.path.join(save_path, filename))
             sh.unarchive(dest_path, save_path)
-            sh.mv(os.path.join(save_path, filename), model_path)
+            sh.cp(os.path.join(save_path, filename), model_path)
 
         return {"status": "ok", "details": f"model repo {remotefile} is created!"}
     except:
