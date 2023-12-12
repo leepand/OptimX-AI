@@ -781,7 +781,7 @@ def view_log():
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return content
 
-    return render_template("log.html", content=content, filename=filename)
+    return render_template("log.html", page="logs", content=content, filename=filename)
 
 
 @webapp.route("/log/search")

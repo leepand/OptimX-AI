@@ -8,7 +8,7 @@ import numpy as np
 import os
 import json
 
-from utils import debug_log, MODEL_ENV
+from utils import debug_log, MODEL_ENV, VERSION
 
 
 class RecomServer(Model):
@@ -17,7 +17,7 @@ class RecomServer(Model):
     def _load(self):
         self.model_name = f"{{model_name}}"
         self.debug_db = make(
-            "cache/feature_store-v1", db_name="debug_tests.db", env=MODEL_ENV
+            f"cache/feature_store-v0.0", db_name="debug_tests.db", env=MODEL_ENV
         )
 
         self.model_db = make(
