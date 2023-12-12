@@ -61,13 +61,10 @@ class RestStorageDriver(StorageDriver):
 
     @retry(**REST_RETRY_POLICY)
     def upload_object(self, file_path, object_name):
-        blob_client = self.client.get_blob_client(
-            container=self.bucket, blob=object_name
+        blob_details = self.client.upload_blob(
+            object_name=object_name, file_path=file_path, bucket=self.bucket
         )
-        if blob_client.exists():
-            self.delete_object(object_name)
-        with open(file_path, "rb") as f:
-            blob_client.upload_blob(f)
+        return blob_details
 
     @retry(**REST_RETRY_POLICY)
     def download_object(self, object_name, destination_path):

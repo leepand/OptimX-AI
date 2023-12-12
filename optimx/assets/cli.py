@@ -27,6 +27,7 @@ except ModuleNotFoundError:
     has_s3 = False
 
 from optimx.assets.drivers.rest import RestStorageDriver
+from optimx.assets.drivers.rest_client import RestClient
 
 from optimx.assets.errors import ObjectDoesNotExistError
 from optimx.assets.manager import AssetsManager
@@ -34,6 +35,7 @@ from optimx.assets.remote import DriverNotInstalledError, StorageProvider
 from optimx.assets.settings import AssetSpec
 from optimx.utils.file_utils import data_dir
 import optimx.ext.shellkit as sh
+from optimx.api import pull_assets
 
 
 @click.group("assets")
@@ -531,3 +533,53 @@ def update_push(
             )
         return new_version
     print("Aborting.")
+
+
+@assets_cli.command("clone", no_args_is_help=True)
+@click.option("--name", help="model name", required=True)
+@click.option(
+    "--profile", help="env name", required=True, default="preprod", show_default=True
+)
+@click.option(
+    "--version",
+    help="model version to pull",
+    required=True,
+    default="0.0",
+    show_default=True,
+)
+@click.option(
+    "--localdir",
+    help="local repo to save code",
+    required=True,
+    default=os.getcwd(),
+    show_default=True,
+)
+@click.option(
+    "--provider", help="driver", required=True, default="local", show_default=True
+)
+@click.option(
+    "--bucket",
+    help="model repo base path",
+    required=True,
+    default=data_dir(),
+    show_default=True,
+)
+def pull_code(name, profile, version, localdir, provider, bucket):
+    """
+    Pull model/version and code from remote repo to local repo.
+    """
+    if provider == "local":
+        pull_assets(
+            name=name,
+            env=profile,
+            version=version,
+            assets_dir=localdir,
+            provider=provider,
+            bucket=bucket,
+            force_download=False,
+        )
+    else:
+        rest_client = RestClient()
+        rest_client.clone(
+            name=name, version=version, env=profile, save_path=localdir, rm_zipfile=True
+        )

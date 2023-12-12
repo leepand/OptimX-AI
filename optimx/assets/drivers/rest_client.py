@@ -1,8 +1,10 @@
 import functools
 import requests
 import urllib.parse
-import json
+import os
 from optimx.config import MODEL_SERVER_HOST
+from optimx.utils.file_utils import fsync_open
+import optimx.ext.shellkit as sh
 
 
 class SDK:
@@ -59,3 +61,28 @@ class RestClient(SDK):
                 },
                 files=_f,
             )
+
+    def upload_blob(self, object_name, file_path):
+        with open(file_path, "rb") as f:
+            _f = {"file": f}
+            return self.post(
+                f"/api/{self.name}/upload_blob",
+                as_json=True,
+                data={"object_name": object_name, "bucket": "bucket"},
+                files=_f,
+            )
+
+    def clone(self, name, version, env, save_path, rm_zipfile=True):
+        resp = self.get(
+            f"/api/{self.name}/clone",
+            params={"name": name, "version": version, "env": env},
+        )
+        filename = f"{name}.tgz"
+        dest_path = os.path.join(save_path, filename)
+        with fsync_open(dest_path, "wb") as file:
+            for data in resp.iter_content(chunk_size=1024):
+                file.write(data)
+
+        sh.unarchive(dest_path, os.path.join(save_path, name))
+        if rm_zipfile:
+            sh.rmfile(dest_path)

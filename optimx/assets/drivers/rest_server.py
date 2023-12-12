@@ -5,6 +5,9 @@ import aiofiles
 import logging
 
 from fastapi import Depends, File, Form, FastAPI, UploadFile, HTTPException
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTasks
+
 import pydantic
 import traceback
 
@@ -77,5 +80,52 @@ async def push_model(
             filename = await save_file(file, remotefile)
 
         return {"status": "ok", "details": f"model repo {remotefile} is created!"}
+    except:
+        return {"status": "failed", "details": str(traceback.format_exc())}
+
+
+@api.post("/api/models/upload_blob")
+async def upload_blob(
+    object_name: str = Form(...),
+    bucket: str = Form(...),
+    file: UploadFile = File(...),
+    settings: Settings = Depends(get_settings),
+):
+    try:
+        if file:
+            model_path = os.path.join(MODEL_BASE_PATH)
+            remotefile = os.path.join(model_path, object_name)
+            parent_directory = os.path.dirname(remotefile)
+            sh.mkdir(parent_directory)
+
+            filename = await save_file(file, remotefile)
+
+        return {"status": "ok", "details": f"model repo {remotefile} is created!"}
+    except:
+        return {"status": "failed", "details": str(traceback.format_exc())}
+
+
+def remove_file(path: str) -> None:
+    os.unlink(path)
+
+
+@api.get("/api/models/clone")
+async def clone_file(
+    name: str, version: str, env: str, background_tasks: BackgroundTasks
+):
+    try:
+        model_path = os.path.join(MODEL_BASE_PATH)
+        model_remotedir = os.path.join(model_path, env, name, version)
+        model_tempdir = os.path.join(model_path, ".cache")
+        sh.mkdir(model_tempdir)
+        file_to_achive = os.path.join(model_tempdir, f"{name}.tgz")
+        sh.archive(
+            file_to_achive,
+            sh.walk(model_remotedir, include=["*.py", "*.md", "*.ipynb"]),
+        )
+        file_to_download = FileResponse(path=file_to_achive, filename=f"{name}.tgz")
+        # sh.rmfile(file_to_achive)
+        background_tasks.add_task(remove_file, file_to_achive)
+        return file_to_download
     except:
         return {"status": "failed", "details": str(traceback.format_exc())}

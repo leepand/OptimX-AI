@@ -4,6 +4,10 @@ import posixpath
 import os
 import sys
 import platform
+import contextlib
+from typing import Union, Optional, Generator, IO, Any
+import pathlib
+
 
 import tarfile
 import gzip
@@ -29,6 +33,21 @@ def data_dir():
     :return: data directory in the filesystem for storage, for example when downloading models
     """
     return os.getenv("OPTIMX_HOME", data_dir_default())
+
+
+@contextlib.contextmanager
+def fsync_open(
+    path: Union[pathlib.Path, str], mode: str = "w", encoding: Optional[str] = None
+) -> Generator[IO[Any], None, None]:
+    """
+    Opens a path for I/O, guaranteeing that the file is flushed and
+    fsynced when the file's context expires.
+    """
+    with open(path, mode, encoding=encoding) as f:
+        yield f
+
+        f.flush()
+        os.fsync(f.fileno())
 
 
 def relative_path_to_artifact_path(path):
