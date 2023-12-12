@@ -165,6 +165,8 @@ optimx assets push --name spinux_strategy_recom --profile dev --filename spinux_
   --toremote       to_remote
   --preview        Preview  [default: True]
 ```
+--uodate 指定该参数时会更新指定版本，如果不指定的话，会创建新的repo，0.0版本（同一个模型只会new一次），其他的修改均为版本的更新，其中：
+--newversion 指定该参数时小版本会升级，比如0.1版本会升级到0.2版本，同时指定--bump时会升级大版本（该小版本从0开始），比如当前版本为1.9，当--newversion --bump 时，新版本为：2.0；
 
 ### Configuring models
 

@@ -621,7 +621,8 @@ def run(service, host, port, mainport):
         with sh.cd(base_path):
             process_script = f"optimxserver -p {mainport} > main_server.log 2>&1 &"
             main_service_msg = start_service(
-                script=f"nohup gunicorn --workers=3 -b {_server_host}:{mainport} {process_script}"
+                # script=f"nohup gunicorn --workers=3 -b {_server_host}:{mainport} {process_script}"
+                script=f"nohup {process_script}"
             )
             print(
                 f"serving ui info: {main_service_msg}! main service serving",

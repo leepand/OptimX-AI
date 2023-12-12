@@ -3,3 +3,4 @@ recursive-include optimx/templates *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude tests *
+recursive-include optimx/ext *
