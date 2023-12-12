@@ -86,3 +86,20 @@ class RestClient(SDK):
         sh.unarchive(dest_path, os.path.join(save_path, name))
         if rm_zipfile:
             sh.rmfile(dest_path)
+
+    def deploy(self, name, version, local_path, filename, server_base_path="df"):
+        zip_file = f"{filename}.tgz"
+        sh.archive(zip_file, sh.walk(os.path.join(local_path, filename)))
+        with open(zip_file, "rb") as f:
+            _f = {"file": f}
+            return self.post(
+                f"/api/{self.name}/deploy",
+                as_json=True,
+                data={
+                    "name": name,
+                    "version": version,
+                    "filename": filename,
+                    "server_base_path": server_base_path,
+                },
+                files=_f,
+            )

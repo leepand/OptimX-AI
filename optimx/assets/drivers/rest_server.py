@@ -11,7 +11,7 @@ from starlette.background import BackgroundTasks
 import pydantic
 import traceback
 
-from optimx.config import MODEL_BASE_PATH
+from optimx.config import MODEL_BASE_PATH, REMOTE_PREDEPLOY_PATH_DICT
 import optimx.ext.shellkit as sh
 from .dam import Dam
 
@@ -127,5 +127,40 @@ async def clone_file(
         # sh.rmfile(file_to_achive)
         background_tasks.add_task(remove_file, file_to_achive)
         return file_to_download
+    except:
+        return {"status": "failed", "details": str(traceback.format_exc())}
+
+
+@api.post("/api/models/deploy")
+async def deploy_model(
+    name: str = Form(...),
+    version: str = Form(...),
+    server_base_path: str = Form(...),
+    filename: str = Form(...),
+    file: UploadFile = File(...),
+    settings: Settings = Depends(get_settings),
+):
+    try:
+        if file:
+            if server_base_path == "df":
+                _server_base_path = REMOTE_PREDEPLOY_PATH_DICT["df"]
+            elif server_base_path == "cf":
+                _server_base_path = REMOTE_PREDEPLOY_PATH_DICT["cf"]
+            else:
+                _server_base_path = server_base_path
+
+            model_path = os.path.join(_server_base_path, name, version)
+            cache_path = os.path.join(_server_base_path, name, ".cache")
+            sh.mkdir(cache_path)
+            remotefile = os.path.join(cache_path, f"{filename}.tgz")
+            parent_directory = os.path.dirname(remotefile)
+            sh.mkdir(parent_directory)
+            filename = await save_file(file, remotefile)
+            dest_path = remotefile
+            save_path = os.path.join(cache_path, filename)
+            sh.unarchive(dest_path, save_path)
+            sh.mv(os.path.join(save_path, filename), model_path)
+
+        return {"status": "ok", "details": f"model repo {remotefile} is created!"}
     except:
         return {"status": "failed", "details": str(traceback.format_exc())}

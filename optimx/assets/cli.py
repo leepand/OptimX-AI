@@ -36,6 +36,7 @@ from optimx.assets.settings import AssetSpec
 from optimx.utils.file_utils import data_dir
 import optimx.ext.shellkit as sh
 from optimx.api import pull_assets
+from optimx.config import REMOTE_MODEL_SERVER
 
 
 @click.group("assets")
@@ -583,3 +584,46 @@ def pull_code(name, profile, version, localdir, provider, bucket):
         rest_client.clone(
             name=name, version=version, env=profile, save_path=localdir, rm_zipfile=True
         )
+
+
+@assets_cli.command("deploy", no_args_is_help=True)
+@click.option("--name", help="model name", required=True)
+@click.option(
+    "--version",
+    help="model version to push",
+    required=True,
+    default="0.0",
+    show_default=True,
+)
+@click.option(
+    "--local-path",
+    help="local base path",
+    is_flag=False,
+    default=os.getcwd(),
+    show_default=True,
+)
+@click.option(
+    "--filename", help="filename/dirname to upload", is_flag=False, show_default=True
+)
+@click.option(
+    "--team-repo-path",
+    help="remote diff team base model repo(code) for push",
+    is_flag=False,
+    default="df",
+    show_default=True,
+)
+def deploy(name, version, local_path, filename, team_repo_path):
+    if team_repo_path in ["cf", "df"]:
+        host = REMOTE_MODEL_SERVER[team_repo_path]
+        rest_client = RestClient(host=host)
+    else:
+        rest_client = RestClient()
+
+    rest_client.deploy(
+        name=name,
+        version=version,
+        local_path=local_path,
+        filename=filename,
+        server_base_path=team_repo_path,
+    )
+    print("Aborting.")

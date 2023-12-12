@@ -43,3 +43,14 @@ for fname in def_logs_fnames:
 
 logs_path = os.path.join(base_logs_path, "*.log")
 LOGS_FILES = [logs_path]
+REMOTE_PREDEPLOY_PATH_DF = "/home/ec2-user/models_deploy/local_models_optimx"
+REMOTE_PREDEPLOY_PATH_CF = "/home/ec2-user/models_deploy/local_models"
+REMOTE_PREDEPLOY_PATH_DICT = {
+    "cf": REMOTE_PREDEPLOY_PATH_CF,
+    "df": REMOTE_PREDEPLOY_PATH_DF,
+}
+
+REMOTE_MODEL_SERVER = {
+    "cf": "http://34.210.82.189:5006",
+    "df": "http://54.214.110.168:5006",
+}
