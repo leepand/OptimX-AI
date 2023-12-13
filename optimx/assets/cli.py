@@ -36,7 +36,7 @@ from optimx.assets.settings import AssetSpec
 from optimx.utils.file_utils import data_dir
 import optimx.ext.shellkit as sh
 from optimx.api import pull_assets
-from optimx.config import REMOTE_MODEL_SERVER
+from optimx.config import REMOTE_MODEL_SERVER, MODEL_SERVER_HOST
 
 
 @click.group("assets")
@@ -613,17 +613,41 @@ def pull_code(name, profile, version, localdir, provider, bucket):
     show_default=True,
 )
 def deploy(name, version, local_path, filename, team_repo_path):
+    host = None
     if team_repo_path in ["cf", "df"]:
         host = REMOTE_MODEL_SERVER[team_repo_path]
         rest_client = RestClient(host=host)
     else:
+        model_host = MODEL_SERVER_HOST["host"]
+        model_port = MODEL_SERVER_HOST["port"]
+        host_defualt = f"http://{model_host}:{model_port}"
         rest_client = RestClient()
+        host = host_defualt
 
-    resp = rest_client.deploy(
-        name=name,
-        version=version,
-        local_path=local_path,
-        filename=filename,
-        server_base_path=team_repo_path,
-    )
-    print(resp)
+    
+    print("Destination assets provider:")
+    print(f" - storage driver = `REST API`")
+    print(f" - remote model name = `{name}`")
+    print(f" - remote model version = `{version}`")
+    asset_path = os.path.join(local_path, filename)
+    print(f"Current asset: `{asset_path}`")
+
+    if team_repo_path == "cf":
+        push_dest = "Model will send to CF models repo"
+    elif team_repo_path == "df":
+        push_dest = "Model will send to DAFU models repo"
+
+    print(f" - deploy destination = `{push_dest}` ")
+    print(f" - remote host = `{host}`")
+    response = click.prompt("[y/N]")
+    if response == "y":
+        resp = rest_client.deploy(
+            name=name,
+            version=version,
+            local_path=local_path,
+            filename=filename,
+            server_base_path=team_repo_path,
+        )
+        print(resp)
+        return resp
+    print("Aborting.")

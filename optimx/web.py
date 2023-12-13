@@ -671,10 +671,10 @@ def model_details(modelname, section, env, version):
                 context["content_model"] = "\n".join(file_contents)
                 filename = "\n".join(filenames)
             else:
-                #content_model = read_log(
+                # content_model = read_log(
                 #    filename, session_key=session_key, seek_tail=seek_tail
-                #)
-                #context["content_model"] = content_model
+                # )
+                # context["content_model"] = content_model
                 file_contents = [cat_file_content(filename)]
                 context["content_model"] = "\n".join(file_contents)
         except:

@@ -51,6 +51,6 @@ REMOTE_PREDEPLOY_PATH_DICT = {
 }
 
 REMOTE_MODEL_SERVER = {
-    "cf": "http://34.210.82.189:5006",
+    "cf": "http://34.210.82.189:8915",
     "df": "http://54.214.110.168:5006",
 }
