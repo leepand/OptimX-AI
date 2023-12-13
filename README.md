@@ -152,6 +152,29 @@ class ModelWithAsset(Model):
 
 #### 模型资产的部署 
 
+Step1 本地向生产/开发服务器上传代码:
+
+```
+optimx assets deploy --name theme_early_unlock_promotion --version 0.0 --filename 0.0
+
+Usage: optimx assets deploy [OPTIONS]
+
+Options:
+  --name TEXT            model name  [required]
+  --version TEXT         model version to push  [default: 0.0; required]
+  --local-path TEXT      local base path  [default: /Users/leepand/Downloads/b
+                         oleprojects/bolemodels/DF_local_models/theme_early_un
+                         lock_promotion]
+  --filename TEXT        filename/dirname to upload
+  --team-repo-path TEXT  remote diff team base model repo(code) for push
+                         [default: df]
+```
+
+**注意** 上传前需要修改config.py/utils.py 中，MODEL_ENV/VERSION的实际值。
+
+Step2 在生产/开发服务器执行push：
+
+
 ```
 optimx assets push --name spinux_strategy_recom --profile dev --filename spinux_strategy_recom --preview --update
 
@@ -167,6 +190,8 @@ optimx assets push --name spinux_strategy_recom --profile dev --filename spinux_
 ```
 --uodate 指定该参数时会更新指定版本，如果不指定的话，会创建新的repo，0.0版本（同一个模型只会new一次），其他的修改均为版本的更新，其中：
 --newversion 指定该参数时小版本会升级，比如0.1版本会升级到0.2版本，同时指定--bump时会升级大版本（该小版本从0开始），比如当前版本为1.9，当--newversion --bump 时，新版本为：2.0；
+
+Step3 启动模型服务
 
 ### Configuring models
 
