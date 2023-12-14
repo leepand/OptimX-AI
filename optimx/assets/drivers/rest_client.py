@@ -79,6 +79,9 @@ class RestClient(SDK):
         )
         filename = f"{name}.tgz"
         dest_path = os.path.join(save_path, filename)
+        if isinstance(resp, dict):
+            print(resp)
+            return resp
         with fsync_open(dest_path, "wb") as file:
             for data in resp.iter_content(chunk_size=1024):
                 file.write(data)
@@ -86,6 +89,11 @@ class RestClient(SDK):
         sh.unarchive(dest_path, os.path.join(save_path, name))
         if rm_zipfile:
             sh.rmfile(dest_path)
+
+        print(f" - model data to path = `{os.path.join(save_path, name)}` ")
+        print(f" - model data from env = `{env}` ")
+        print(f" - model name = `{name}` ")
+        print(f" - model version = `{version}` ")
 
     def deploy(self, name, version, local_path, filename, server_base_path="df"):
         zip_file = f"{filename}.tgz"

@@ -556,7 +556,11 @@ def update_push(
     show_default=True,
 )
 @click.option(
-    "--provider", help="driver", required=True, default="local", show_default=True
+    "--provider",
+    help="driver, support local and rest",
+    required=True,
+    default="local",
+    show_default=True,
 )
 @click.option(
     "--bucket",
@@ -565,7 +569,14 @@ def update_push(
     default=data_dir(),
     show_default=True,
 )
-def pull_code(name, profile, version, localdir, provider, bucket):
+@click.option(
+    "--team-repo-path",
+    help="remote diff team base model repo(code) for clone",
+    is_flag=False,
+    default="df",
+    show_default=True,
+)
+def pull_code(name, profile, version, localdir, provider, bucket, team_repo_path):
     """
     Pull model/version and code from remote repo to local repo.
     """
@@ -580,10 +591,39 @@ def pull_code(name, profile, version, localdir, provider, bucket):
             force_download=False,
         )
     else:
-        rest_client = RestClient()
-        rest_client.clone(
-            name=name, version=version, env=profile, save_path=localdir, rm_zipfile=True
-        )
+        if team_repo_path in ["cf", "df"]:
+            host = REMOTE_MODEL_SERVER[team_repo_path]
+            rest_client = RestClient(host=host)
+        else:
+            model_host = MODEL_SERVER_HOST["host"]
+            model_port = MODEL_SERVER_HOST["port"]
+            host_defualt = f"http://{model_host}:{model_port}"
+            rest_client = RestClient()
+            host = host_defualt
+
+        print("Destination assets provider:")
+        print(f" - storage driver = `REST API`")
+        print(f" - remote model name = `{name}`")
+        print(f" - remote model version = `{version}`")
+
+        print(f"Current asset: `{localdir}`")
+
+        if team_repo_path == "cf":
+            clone_from = "CF models repo"
+        elif team_repo_path == "df":
+            clone_from = "DAFU models repo"
+
+        print(f" - clone assets from = `{clone_from}` ")
+        print(f" - remote host = `{host}`")
+        response = click.prompt("[y/N]")
+        if response == "y":
+            rest_client.clone(
+                name=name,
+                version=version,
+                env=profile,
+                save_path=localdir,
+                rm_zipfile=True,
+            )
 
 
 @assets_cli.command("deploy", no_args_is_help=True)
@@ -624,7 +664,6 @@ def deploy(name, version, local_path, filename, team_repo_path):
         rest_client = RestClient()
         host = host_defualt
 
-    
     print("Destination assets provider:")
     print(f" - storage driver = `REST API`")
     print(f" - remote model name = `{name}`")

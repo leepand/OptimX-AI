@@ -33,7 +33,7 @@ install_requires =
 	#google-cloud-storage
 	azure-storage-blob
 	humanize
-	pydantic
+	pydantic==1.10.12
 	python-dateutil
 	redis
 	rich
