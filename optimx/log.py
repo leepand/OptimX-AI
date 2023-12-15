@@ -23,7 +23,7 @@ class ReverseFileSearcher(object):
 
         self._filename = filename
         self._needle = needle
-        self._fp = open(filename, "rb")
+        self._fp = open(filename, "r")
         self.reset()
 
     def reset(self):
@@ -32,7 +32,7 @@ class ReverseFileSearcher(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         pos = self.find()
         if pos < 0:
             raise StopIteration
@@ -49,7 +49,7 @@ class ReverseFileSearcher(object):
             return ""
         destpos = max(filepos - self._chunk_size, 0)
         self._fp.seek(destpos)
-        buf = self._fp.read(filepos - destpos).decode("utf-8")
+        buf = self._fp.read(filepos - destpos)
         self._fp.seek(destpos)
         return buf
 
@@ -86,26 +86,30 @@ class ReverseFileSearcher(object):
 
 
 class LogReader(object):
-    BUFFER_SIZE = 8192
+    BUFFER_SIZE = 81920
 
     def __init__(self, filename, buffer_size=BUFFER_SIZE):
         self.filename = filename
-        self.fp = open(filename, "rb")
+        self.fp = open(filename, "r")
         self.buffer_size = buffer_size
         self._searchers = {}
 
     def __repr__(self):
-        return "<LogReader filename=%s, file-pos=%d>" % (self.filename, self.fp.tell())
+        return "<LogReader filename=%s, file-pos=%d>" % (
+            self.filename,
+            self.fp.tell(),
+        )
 
     def set_tail_position(self):
         stat = os.fstat(self.fp.fileno())
         if stat.st_size >= self.buffer_size:
-            self.fp.seek(-self.buffer_size, os.SEEK_END)
+            self.fp.seek(0, os.SEEK_END)
+            self.fp.seek(self.fp.tell() - self.buffer_size, os.SEEK_SET)
         else:
             self.fp.seek(0)
 
     def read(self):
-        buf = self.fp.read(self.buffer_size).decode("utf-8")
+        buf = self.fp.read(self.buffer_size)
         return buf
 
     def search(self, text):
@@ -133,7 +137,6 @@ class LogReader(object):
         read_before = self.buffer_size / 2
         offset = max(position - read_before, 0)
         bufferpos = position if offset == 0 else read_before
-        offset = int(offset)
         self.fp.seek(offset)
         return position, bufferpos, self.read()
 
@@ -149,7 +152,6 @@ class Logs(object):
     def add_available(self, filename):
         # quick verification that it exists and can be read
         try:
-            filename = filename
             f = open(filename)
             f.close()
         except IOError as e:
@@ -172,12 +174,13 @@ class Logs(object):
                 available.append(log)
             except IOError:
                 logger.info(
-                    'Failed to get "%s", removing from available logs', filename
+                    'Failed to get "%s", removing from available logs',
+                    filename,
                 )
                 to_remove.append(filename)
 
         if to_remove:
-            map(self.remove_available, to_remove)
+            list(map(self.remove_available, to_remove))
 
         return available
 
@@ -200,12 +203,12 @@ class Logs(object):
         return i
 
     def clear(self):
-        for r in self.readers.itervalues():
+        for r in self.readers.values():
             r.close()
         self.readers = {}
 
     def remove(self, filename):
-        for reader_key, r in self.readers.items():
+        for reader_key, r in list(self.readers.items()):
             if reader_key[0] == filename:
                 r.close()
                 del self.readers[reader_key]
