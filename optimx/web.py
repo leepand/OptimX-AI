@@ -31,10 +31,13 @@ from optimx.log import Logs
 from optimx.utils.sys_utils import cat_file_content
 from optimx.model_assets import ALLOWED_ENV
 from optimx.config import MODEL_BASE_PATH
+import optimx.ext.shellkit as sh
+import importlib.util
 
 from flask_httpauth import HTTPBasicAuth
 from optimx import ServiceMgr
 from .database import DB
+from .api import Client
 
 auth = HTTPBasicAuth()
 logger = logging.getLogger("optimx.web")
@@ -638,13 +641,15 @@ def model_details(modelname, section, env, version):
         # context["viewmodel"] = "current_service.get_process_limits(pid)"
         try:
             ops = request.args.get("ops")
+            ori_ops = "model_logs"
             if ops == "restart":
                 test = ServiceMgr([modelname], env=env)
                 test.start_service()
                 ops = "model_logs"
                 filename = "all"
+                ori_ops = "restart"
 
-            if ops == "model_logs":
+            if ops == "testing":
                 version_files_path = None
                 if len(model_version_files) > 0:
                     version_files_path = model_details[version].get(
@@ -655,21 +660,99 @@ def model_details(modelname, section, env, version):
                     base_path = version_files_path
                 else:
                     base_path = os.path.join(MODEL_BASE_PATH, env, modelname, version)
-                # print(base_path, "base_path")
-                log_path = os.path.join(base_path, "logs") + os.sep
-                if filename == "recom_log":
-                    logs = Path(log_path).glob("*recom*.log")
-                elif filename == "reward_log":
-                    logs = Path(log_path).glob("*reward*.log")
+                base_path = os.path.join(MODEL_BASE_PATH, env, modelname, version)
+                if filename == "recom_test":
+                    import json
+                    log_name = os.path.join(base_path, "logs", "recom_test.log")
+                    try:
+                        # Load the Python file
+                        test_data_file = os.path.join(base_path, "src", "test_data.py")
+                        spec = importlib.util.spec_from_file_location(
+                            "test_data", test_data_file
+                        )
+                        module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(module)
+                        ports = model_details["recom_ports"]
+                        test_result = Client(port=ports[0]).predict(module.recom)
+                        if isinstance(module.recom, dict):
+                            sh.write(log_name, json.dumps(module.recom))
+                        else:
+                            sh.write(log_name, str(module.recom))
+                    except:
+                        test_result = traceback.format_exc()
+
+                    sh.write(log_name, "\n\n", "a")
+                    sh.write(log_name, "\n\ntest result:\n\n", "a")
+                    if isinstance(test_result, dict):
+                        sh.write(log_name, json.dumps(test_result), "a")
+                    else:
+                        sh.write(log_name, str(test_result), "a")
                 else:
-                    logs = Path(log_path).glob("*.log")
-                file_contents = []
-                filenames = []
-                for _log in logs:
-                    file_contents.append(cat_file_content(_log))
-                    filenames.append(str(_log))
-                context["content_model"] = "\n".join(file_contents)
-                filename = "\n".join(filenames)
+                    import json
+                    log_name = os.path.join(base_path, "logs", "reward_test.log")
+                    try:
+                        # Load the Python file
+                        test_data_file = os.path.join(base_path, "src", "test_data.py")
+                        spec = importlib.util.spec_from_file_location(
+                            "test_data", test_data_file
+                        )
+                        module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(module)
+
+                        ports = model_details["reward_ports"]
+                        test_result = Client(port=ports[0]).predict(
+                            module.reward, "predict/rewardserver"
+                        )
+                        if isinstance(module.recom, dict):
+                            sh.write(log_name, json.dumps(module.reward))
+                        else:
+                            sh.write(log_name, str(module.reward))
+                    except:
+                        test_result = traceback.format_exc()
+                    
+                    sh.write(log_name, "\n\n", "a")
+                    sh.write(log_name, "\n\ntest result:\n\n", "a")
+                    if isinstance(test_result, dict):
+                        sh.write(log_name, json.dumps(test_result), "a")
+                    else:
+                        sh.write(log_name, str(test_result), "a")
+
+                filename = log_name
+                ops = "model_logs"
+                ori_ops = "testing"
+
+            if ops == "model_logs":
+                if ori_ops == "testing":
+                    context["content_model"] = cat_file_content(filename)
+                    filename = filename
+                else:
+                    version_files_path = None
+                    if len(model_version_files) > 0:
+                        version_files_path = model_details[version].get(
+                            "version_files_path"
+                        )
+
+                    if version_files_path:
+                        base_path = version_files_path
+                    else:
+                        base_path = os.path.join(
+                            MODEL_BASE_PATH, env, modelname, version
+                        )
+                    # print(base_path, "base_path")
+                    log_path = os.path.join(base_path, "logs") + os.sep
+                    if filename == "recom_log":
+                        logs = Path(log_path).glob("*recom*.log")
+                    elif filename == "reward_log":
+                        logs = Path(log_path).glob("*reward*.log")
+                    else:
+                        logs = Path(log_path).glob("*.log")
+                    file_contents = []
+                    filenames = []
+                    for _log in logs:
+                        file_contents.append(cat_file_content(_log))
+                        filenames.append(str(_log))
+                    context["content_model"] = "\n".join(file_contents)
+                    filename = "\n".join(filenames)
             else:
                 # content_model = read_log(
                 #    filename, session_key=session_key, seek_tail=seek_tail

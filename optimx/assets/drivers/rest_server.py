@@ -121,7 +121,9 @@ async def clone_file(
         file_to_achive = os.path.join(model_tempdir, f"{name}.tgz")
         sh.archive(
             file_to_achive,
-            sh.walk(model_remotedir, include=["*.py", "*.md", "*.ipynb"]),
+            sh.walk(
+                model_remotedir, include=["*.py", "*.md", "*.ipynb", "*yml", "*.yaml"]
+            ),
         )
         file_to_download = FileResponse(path=file_to_achive, filename=f"{name}.tgz")
         # sh.rmfile(file_to_achive)

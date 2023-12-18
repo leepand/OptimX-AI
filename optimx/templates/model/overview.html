@@ -52,14 +52,23 @@
                             section="viewmodel",
                             env=env,
                             ops="restart",
-                            version=current_version) }}">restart</a></td>
+                            version=current_version) }}">Restart</a></td>
                         <td><a href="{{ url_for(".model_details",
                             modelname=model_info.name, 
                             filename="recom_log",
                             section="viewmodel", 
                             ops="model_logs",
                             version=current_version,
-                            env=env)}}">log</a></td>
+                            env=env)}}">Logs</a>
+                        </td>
+                        <td><a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="recom_test",
+                            section="viewmodel", 
+                            ops="testing",
+                            version=current_version,
+                            env=env)}}">Testing</a>
+                        </td>
                     </tr>
                     <tr>
                         <td>Rewardserver Ports</td>
@@ -75,14 +84,24 @@
                             section="viewmodel",
                             ops="restart",
                             env=env,
-                            version=current_version) }}">restart</a></td>
+                            version=current_version) }}">Restart</a>
+                        </td>
                         <td><a href="{{ url_for(".model_details",
                             modelname=model_info.name, 
                             filename="reward_log",
                             section="viewmodel", 
                             ops="model_logs",
                             version=current_version,
-                            env=env)}}">log</a></td>
+                            env=env)}}">Logs</a>
+                        </td>
+                        <td><a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="reward_test",
+                            section="viewmodel", 
+                            ops="testing",
+                            version=current_version,
+                            env=env)}}">Testing</a>
+                        </td>
                     </tr>
                     
                 </table>

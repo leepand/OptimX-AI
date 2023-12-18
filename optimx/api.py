@@ -267,4 +267,4 @@ class Client:
         if ret.status_code == 200:
             return ret.json()
         else:
-            ret.raise_for_status()
+            return ret.raise_for_status()
