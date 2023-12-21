@@ -25,6 +25,8 @@
                                     {%else%}
                                         <th>Recomserver address</th>
                                         <th>Rewardserver address</th>
+                                        <th>Size</th>
+                                        <th>Modification time</th>
                                     {% endif %}  
                                 </tr>
                                 <tr>
@@ -74,6 +76,14 @@
                                         <td>
                                             {{sub_model_info[model].reward_ports if
                                                 sub_model_info[model].reward_ports else "-"}}
+                                        </td>
+                                        <td>
+                                            {{sub_model_info[model].model_size if
+                                                sub_model_info[model]["model_size"] else "-"}}
+                                        </td>
+                                        <td>
+                                            {{sub_model_info[model].dtmod | fromtimestamp2 if
+                                                sub_model_info[model]["dtmod"] else "-"}}
                                         </td>
                                     {%endif%}                                    
                                 </tr>

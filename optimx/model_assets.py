@@ -154,6 +154,15 @@ def get_models_meta(
                 max_version = max(
                     versions_list, key=lambda x: float(re.findall(r"(\d+.\d+)", x)[0])
                 )
+
+            model_path = os.path.join(env_base_path, model_asset_name)
+            model_infos[model_asset_name]["dtmod"] = datetime.fromtimestamp(
+                Path(model_path).stat().st_mtime
+            )
+            model_infos[model_asset_name]["model_size"] = "0 KB"
+            model_infos[model_asset_name]["model_size"] = human_readable_file_size(
+                get_size(model_path)
+            )
             for version in versions_list:
                 try:
                     model_version_info = storage_provider.get_asset_meta(
