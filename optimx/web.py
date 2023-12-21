@@ -38,6 +38,7 @@ from flask_httpauth import HTTPBasicAuth
 from optimx import ServiceMgr
 from .database import DB
 from .api import Client
+from .push_model_ui import SHA_TZ
 
 auth = HTTPBasicAuth()
 logger = logging.getLogger("optimx.web")
@@ -71,6 +72,7 @@ def fromtimestamp(value, dateformat="%Y-%m-%d %H:%M:%S"):
 
 
 def fromtimestamp2(value, dateformat="%Y-%m-%d %H:%M:%S"):
+    value = value.astimezone(SHA_TZ)
     dt = value.strftime(dateformat)
     return dt
 
