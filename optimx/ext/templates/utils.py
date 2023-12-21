@@ -5,6 +5,7 @@ from datetime import timezone
 from datetime import timedelta
 from hashlib import sha1
 import json
+import numpy as np
 
 SHA_TZ = timezone(
     timedelta(hours=8),
@@ -78,3 +79,7 @@ def condition(lst, n):
 def filter_value(lst, value):
     filtered_list = [x for x in lst if x != value]
     return filtered_list
+
+
+def sigmoid(x):
+    return float(1 / (1 + np.exp(-x)))

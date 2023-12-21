@@ -20,9 +20,12 @@
                                     <th>Environment</th>
                                     <th>Versions</th>
                                     <th>Version List</th>
-                                    <th>Recomserver address</th>
-                                    <th>Rewardserver address</th>
-                                    
+                                    {%if sub_model_info["env"]=="preprod" %}
+                                        <th>Modification time</th>
+                                    {%else%}
+                                        <th>Recomserver address</th>
+                                        <th>Rewardserver address</th>
+                                    {% endif %}  
                                 </tr>
                                 <tr>
                                     <th></th>
@@ -57,14 +60,22 @@
                                     <td>{{sub_model_info[model]["version_list"]|length}}</td>
                                     <td>{{sub_model_info[model].version_list if  
                                                 sub_model_info[model]["version_list"] else "-"}}</td>
-                                    <td>
-                                        {{sub_model_info[model].recom_ports if
-                                            sub_model_info[model]["recom_ports"] else "-"}}
-                                    </td>
-                                    <td>
-                                        {{sub_model_info[model].reward_ports if
-                                            sub_model_info[model].reward_ports else "-"}}
-                                    </td>
+                                    
+                                    {% if sub_model_info["env"]=="preprod" %}
+                                        <td>
+                                            {{sub_model_info[model].dtmod | fromtimestamp2 if
+                                                sub_model_info[model]["dtmod"] else "-"}}
+                                        </td>
+                                    {%else%}
+                                        <td>
+                                            {{sub_model_info[model].recom_ports if
+                                                 sub_model_info[model].recom_ports else "-"}}
+                                        </td>
+                                        <td>
+                                            {{sub_model_info[model].reward_ports if
+                                                sub_model_info[model].reward_ports else "-"}}
+                                        </td>
+                                    {%endif%}                                    
                                 </tr>
                                 {% endfor %}
                             </tbody>

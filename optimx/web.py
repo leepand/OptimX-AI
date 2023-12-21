@@ -642,6 +642,47 @@ def model_details(modelname, section, env, version):
         try:
             ops = request.args.get("ops")
             ori_ops = "model_logs"
+            if ops in ["push_to_dev", "push_to_prod"]:
+                from .push_model_ui import new_push, update_push
+
+                # local asset-file path
+                version_files_path = model_details[version].get("version_files_path")
+                if ops == "push_to_dev":
+                    profile = "dev"
+                else:
+                    profile = "prod"
+
+                log_path = os.path.join(version_files_path, "logs")
+                sh.mkdir(log_path)
+                log_file = os.path.join(log_path, f"{filename}.log")
+
+                push_params = {
+                    "name": modelname,
+                    "filename": version_files_path,
+                    "profile": profile,
+                    "log_file": log_file,
+                    "dry_run": False,
+                }
+                if filename == "push_model_new":
+                    push_params = push_params
+
+                elif filename == "push_model_update":
+                    push_params["bump_major"] = False
+                    push_params["newversion"] = False
+
+                elif filename == "push_model_bump_minor":
+                    push_params["bump_major"] = False
+                    push_params["newversion"] = True
+
+                else:
+                    push_params["bump_major"] = True
+                    push_params["newversion"] = True
+
+                if filename == "push_model_new":
+                    new_push(**push_params)
+                else:
+                    update_push(**push_params)
+                filename = os.path.join(log_path, f"{filename}.log")
             if ops == "restart":
                 test = ServiceMgr([modelname], env=env)
                 test.start_service()
@@ -663,6 +704,7 @@ def model_details(modelname, section, env, version):
                 base_path = os.path.join(MODEL_BASE_PATH, env, modelname, version)
                 if filename == "recom_test":
                     import json
+
                     log_name = os.path.join(base_path, "logs", "recom_test.log")
                     try:
                         # Load the Python file
@@ -689,6 +731,7 @@ def model_details(modelname, section, env, version):
                         sh.write(log_name, str(test_result), "a")
                 else:
                     import json
+
                     log_name = os.path.join(base_path, "logs", "reward_test.log")
                     try:
                         # Load the Python file
@@ -709,7 +752,7 @@ def model_details(modelname, section, env, version):
                             sh.write(log_name, str(module.reward))
                     except:
                         test_result = traceback.format_exc()
-                    
+
                     sh.write(log_name, "\n\n", "a")
                     sh.write(log_name, "\n\ntest result:\n\n", "a")
                     if isinstance(test_result, dict):
@@ -772,26 +815,32 @@ def model_details(modelname, section, env, version):
         if ops == "restart":
             test = ServiceMgr([f"{modelname}:{version}"], env=env)
             test.start_service()
+        if env == "preprod":
+            context["push_script"] = (
+                f"optimx assets push --name {modelname} \n"
+                f"--profile {env} --filename {version} --preview --update \n"
+                f"--newversion --bump"
+            )
+        else:
+            recomserver_ports_list = model_details["recom_ports"]
+            rewardserver_ports_list = model_details["reward_ports"]
+            context["recom_status"] = "not deployed"
+            if len(recomserver_ports_list) > 0:
+                recom_port = recomserver_ports_list[0]
+                pid_list = current_service.get_pid_from_port_node(recom_port)
+                if len(pid_list) > 0:
+                    context["recom_status"] = "running"
+                else:
+                    context["recom_status"] = "failed"
 
-        recomserver_ports_list = model_details["recom_ports"]
-        rewardserver_ports_list = model_details["reward_ports"]
-        context["recom_status"] = "not deployed"
-        if len(recomserver_ports_list) > 0:
-            recom_port = recomserver_ports_list[0]
-            pid_list = current_service.get_pid_from_port_node(recom_port)
-            if len(pid_list) > 0:
-                context["recom_status"] = "running"
-            else:
-                context["recom_status"] = "failed"
-
-        context["reward_status"] = "not deployed"
-        if len(rewardserver_ports_list) > 0:
-            reward_port = rewardserver_ports_list[0]
-            pid_list = current_service.get_pid_from_port_node(reward_port)
-            if len(pid_list) > 0:
-                context["reward_status"] = "running"
-            else:
-                context["reward_status"] = "failed"
+            context["reward_status"] = "not deployed"
+            if len(rewardserver_ports_list) > 0:
+                reward_port = rewardserver_ports_list[0]
+                pid_list = current_service.get_pid_from_port_node(reward_port)
+                if len(pid_list) > 0:
+                    context["reward_status"] = "running"
+                else:
+                    context["reward_status"] = "failed"
 
     elif section == "model_logs":
         try:

@@ -12,6 +12,7 @@ from optimx.assets.remote import StorageProvider
 from optimx.utils.file_utils import data_dir
 from optimx.utils.addict import Dict
 from optimx.ext import YAMLDataSet
+from optimx.config import LOCAL_DEPLOY_PATH
 
 DEFAULT_WORKING_DIR = data_dir()
 ALLOWED_ENV = ["dev", "prod", "preprod"]
@@ -25,6 +26,14 @@ def get_size(dir_path):
         for f in glob.iglob(os.path.join(dir_path, "**/*"), recursive=True)
         if os.path.isfile(f)
     )
+
+
+def get_subdirectories(path):
+    subdirectories = []
+    for entry in os.scandir(path):
+        if entry.is_dir() and not entry.name.startswith((".", "__")):
+            subdirectories.append(entry.name)
+    return subdirectories
 
 
 def filemd5(fname):
@@ -61,14 +70,72 @@ def getattrib(fname, dir_path):
     }
 
 
-def get_file_info(env, name, version, filenames, working_dir=DEFAULT_WORKING_DIR):
-    env_base_path = os.path.join(working_dir, env, name, version)
+def get_file_info(
+    env,
+    name,
+    version,
+    filenames,
+    working_dir=DEFAULT_WORKING_DIR,
+    deploy_dir=LOCAL_DEPLOY_PATH,
+):
+    if env == "preprod":
+        env_base_path = os.path.join(deploy_dir, name, version)
+    else:
+        env_base_path = os.path.join(working_dir, env, name, version)
     filesall = [getattrib(fname, env_base_path) for fname in filenames]
     filesall_real = [finfo for finfo in filesall if finfo]
     return filesall_real
 
 
-def get_models_meta(env, working_dir=DEFAULT_WORKING_DIR, provider="local"):
+def get_models_meta(
+    env, working_dir=DEFAULT_WORKING_DIR, provider="local", deploy_dir=LOCAL_DEPLOY_PATH
+):
+    if env == "preprod":
+        model_infos = Dict()
+        model_names = get_subdirectories(path=deploy_dir)
+        for model_name in model_names:
+            model_path = os.path.join(deploy_dir, model_name)
+            model_infos[model_name]["dtmod"] = datetime.fromtimestamp(
+                Path(model_path).stat().st_mtime
+            )
+            versions_list = get_subdirectories(path=model_path)
+            model_infos[model_name]["version_list"] = sorted(
+                list(set(versions_list)), key=str, reverse=True
+            )
+            for version in versions_list:
+                model_version_info = Dict()
+                model_infos[model_name][version] = model_version_info
+                version_files_path = os.path.join(model_path, version)
+                model_infos[model_name][version][
+                    "version_files_path"
+                ] = version_files_path
+
+                version_files_path += (
+                    "/" if not version_files_path.endswith("/") else ""
+                )
+
+                ori_contents = sorted(
+                    f[len(version_files_path) :]
+                    for f in glob.iglob(
+                        os.path.join(version_files_path, "**/*"), recursive=True
+                    )
+                    if os.path.isfile(f) and not f.endswith("pyc")
+                )
+                model_version_info["contents"] = ori_contents
+
+                model_infos[model_name][version]["size"] = "0 KB"
+                model_infos[model_name][version]["push_date"] = datetime.now().strftime(
+                    "%Y-%m-%d"
+                )
+                if os.path.exists(version_files_path):
+                    model_infos[model_name][version]["size"] = human_readable_file_size(
+                        get_size(version_files_path)
+                    )
+                    model_infos[model_name][version][
+                        "push_date"
+                    ] = datetime.fromtimestamp(Path(version_files_path).stat().st_mtime)
+
+        return model_infos
     storage_provider = StorageProvider(
         provider=provider,
         bucket=f"{working_dir}",

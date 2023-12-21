@@ -6,14 +6,18 @@
             <td>{{ model_info.name }}</td>
         </tr>
         <tr>
+            {%if env=="preprod"%}
+            <td>Current Env</td>
+            {%else%}
             <td>Deployed Env</td>
+            {%endif%}
             <td>({{ env}})</td>
         </tr>
         <tr>
             <td>current Version</td>
             <td>{{ current_version }}</td>
         </tr>
-        {% if model_info.max_version %}
+        {% if model_info.max_version%}
         <tr>
             <td>Model Versions</td>
             <td>
@@ -34,6 +38,7 @@
             </td>
         </tr>
         {% endif %}
+        {%if env!="preprod"%}
         <tr>
             <td>Model Service Ports</td>
             <td>
@@ -107,5 +112,93 @@
                 </table>
             </td>  
         </tr>
+        {% endif %}
+        {%if env=="preprod"%}
+        <tr>
+            <td>Model Publish</td>
+            <td>
+                <table class="table table-bordered">
+                    <tr>
+                        <td>Push to Dev</td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_new",
+                            section="viewmodel", 
+                            ops="push_to_dev",
+                            version=current_version,
+                            env=env)}}">New Version<small>(e.g. create 0.0 version)</small></a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_update",
+                            section="viewmodel", 
+                            ops="push_to_dev",
+                            version=current_version,
+                            env=env)}}">Update Current Version<small>(e.g. update content of 0.0 version)</small></a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_bump_minor",
+                            section="viewmodel", 
+                            ops="push_to_dev",
+                            version=current_version,
+                            env=env)}}">Bump-minor Version<small>(e.g. 0.0—>0.1)</small></a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_bump_major",
+                            section="viewmodel", 
+                            ops="push_to_dev",
+                            version=current_version,
+                            env=env)}}">Bump-major Version<small>(e.g. 1.9—>2.0)</small></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Push to Prod</td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_new",
+                            section="viewmodel", 
+                            ops="push_to_prod",
+                            version=current_version,
+                            env=env)}}">New Version<small>(e.g. create 0.0 version)</small></a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_update",
+                            section="viewmodel", 
+                            ops="push_to_prod",
+                            version=current_version,
+                            env=env)}}">Update Current Version<small>(e.g. update content of 0.0 version)</small></a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_bump_minor",
+                            section="viewmodel", 
+                            ops="push_to_prod",
+                            version=current_version,
+                            env=env)}}">Bump-minor Version<small>(e.g. 0.0—>0.1)</small></a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for(".model_details",
+                            modelname=model_info.name, 
+                            filename="push_model_bump_major",
+                            section="viewmodel", 
+                            ops="push_to_prod",
+                            version=current_version,
+                            env=env)}}">Bump-major Version<small>(e.g. 1.9—>2.0)</small></a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        {% endif %}
     </table>
 {% endblock %}

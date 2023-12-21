@@ -49,6 +49,10 @@ REMOTE_PREDEPLOY_PATH_DICT = {
     "cf": REMOTE_PREDEPLOY_PATH_CF,
     "df": REMOTE_PREDEPLOY_PATH_DF,
 }
+# 设置该目录用于server端找到“远程”的部署目录
+LOCAL_DEPLOY_PATH = (
+    "/Users/leepand/同步空间/codes/modelkit/tests/data"  # REMOTE_PREDEPLOY_PATH_DF
+)
 
 REMOTE_MODEL_SERVER = {
     "cf": "http://34.210.82.189:8915",
