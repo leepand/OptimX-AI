@@ -9,6 +9,7 @@ from optimx.envs.build_context import prebuild_server
 from optimx.ext import YAMLDataSet
 from optimx.assets.remote import StorageProvider
 import traceback
+import optimx.ext.shellkit as sh
 
 logger = get_logger(__name__)
 
@@ -52,6 +53,11 @@ class ServiceMgr:
                 continue
 
             prod_path = os.path.join(self.bucket, self.env, model_name, version)
+
+            service_ops_file = os.path.join(
+                self.bucket, self.env, model_name, ".SUCCESS"
+            )
+            sh.write(service_ops_file, str(version))
 
             if_dir = Path(prod_path).is_dir()
             status = "stoped"

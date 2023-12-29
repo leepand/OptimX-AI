@@ -8,7 +8,7 @@ import zerorpc
 from optimx.log import Logs
 from optimx.helpers import socket_families, socket_types
 from optimx.net import get_interface_addresses, NetIOCounters
-from optimx.utils.sys_utils import get_process_details, get_pid_from_port
+from optimx.utils.sys_utils import get_process_details, get_pid_from_port, check_port
 
 from optimx.model_assets import get_models_meta, get_file_info, ALLOWED_ENV
 
@@ -156,6 +156,9 @@ class LocalService(object):
 
     def get_users(self):
         return [u._asdict() for u in psutil.users()]
+
+    def get_port_status(self, port):
+        return check_port(port=port)
 
     def get_network_interfaces(self):
         io_counters = self.node.net_io_counters.get()

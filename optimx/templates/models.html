@@ -19,12 +19,12 @@
                                     <th>Model Name</th>
                                     <th>Environment</th>
                                     <th>Versions</th>
-                                    <th>Version List</th>
+                                    <th>Max Version</th>
                                     {%if sub_model_info["env"]=="preprod" %}
                                         <th>Modification time</th>
                                     {%else%}
-                                        <th>Recomserver address</th>
-                                        <th>Rewardserver address</th>
+                                        <th>Recomserver</th>
+                                        <th>Rewardserver</th>
                                         <th>Size</th>
                                         <th>Modification time</th>
                                     {% endif %}  
@@ -60,8 +60,8 @@
                                     </td>
                                     <td>{{sub_model_info["env"]}}</td>
                                     <td>{{sub_model_info[model]["version_list"]|length}}</td>
-                                    <td>{{sub_model_info[model].version_list if  
-                                                sub_model_info[model]["version_list"] else "-"}}</td>
+                                    <td>{{sub_model_info[model]["version_list"][0] if  
+                                        sub_model_info[model]["version_list"] else "-"}}</td>
                                     
                                     {% if sub_model_info["env"]=="preprod" %}
                                         <td>
@@ -72,10 +72,22 @@
                                         <td>
                                             {{sub_model_info[model].recom_ports if
                                                  sub_model_info[model].recom_ports else "-"}}
+                                                 {% if sub_model_info[model].recom_ports_status=="running" %}
+                                                <small><span class="label label-success">running</span></small>
+                                                {%else%}
+                                                <small><span class="label label-danger">{{sub_model_info[model].recom_ports_status if
+                                                    sub_model_info[model].recom_ports_status else ""}}</span></small>
+                                                {% endif %}
                                         </td>
                                         <td>
                                             {{sub_model_info[model].reward_ports if
                                                 sub_model_info[model].reward_ports else "-"}}
+                                                {% if sub_model_info[model].reward_ports_status=="running" %}
+                                                <small><span class="label label-success">running</span></small>
+                                                {%else%}
+                                                <small><span class="label label-danger">{{sub_model_info[model].reward_ports_status if
+                                                    sub_model_info[model].reward_ports_status else ""}}</span></small>
+                                                {% endif %}
                                         </td>
                                         <td>
                                             {{sub_model_info[model].model_size if

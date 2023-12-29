@@ -10,6 +10,29 @@ def cat_file_content(file):
     return code_content
 
 
+import socket
+
+
+def check_port(port, host="0.0.0.0"):
+    try:
+        # 创建一个socket对象
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # 设置超时时间为2秒
+        sock.settimeout(2)
+        # 尝试连接到指定的主机和端口
+        result = sock.connect_ex((host, port))
+        if result == 0:
+            print(f"Port {port} is open on {host}")
+        else:
+            print(f"Port {port} is closed on {host}")
+        # 关闭socket连接
+        sock.close()
+        return result
+    except socket.error as e:
+        print(f"Error: {e}")
+        return 100
+
+
 def get_pid_from_port(strport):
     # Get process IDs using lsof command
     strport = str(strport)

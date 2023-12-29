@@ -13,6 +13,9 @@ from optimx.utils.file_utils import data_dir
 from optimx.utils.addict import Dict
 from optimx.ext import YAMLDataSet
 from optimx.config import LOCAL_DEPLOY_PATH
+from optimx.utils.sys_utils import check_port
+import optimx.ext.shellkit as sh
+import random
 
 DEFAULT_WORKING_DIR = data_dir()
 ALLOWED_ENV = ["dev", "prod", "preprod"]
@@ -149,7 +152,15 @@ def get_models_meta(
     model_infos = Dict()
     try:
         env_base_path = os.path.join(working_dir, env)
-        for model_asset_name, versions_list in storage_provider.iterate_assets():
+        if len(model_names) < 1:
+            model_list_for_iter = storage_provider.iterate_assets()
+        else:
+            model_list_for_iter = []
+            for name in model_names:
+                versions = list(set(storage_provider.get_versions_info(name)))
+                model_list_for_iter.append((name, versions))
+
+        for model_asset_name, versions_list in model_list_for_iter:
             # print(asset_name, versions_list,storage_provider.get_versions_info(asset_name))
             model_infos[model_asset_name]["version_list"] = sorted(
                 list(set(versions_list)), key=str, reverse=True
@@ -168,6 +179,14 @@ def get_models_meta(
             model_infos[model_asset_name]["model_size"] = human_readable_file_size(
                 get_size(model_path)
             )
+            service_ops_file = os.path.join(model_path, ".SUCCESS")
+            if os.path.exists(service_ops_file):
+                model_infos[model_asset_name]["server_version"] = sh.read(
+                    service_ops_file
+                )
+            else:
+                model_infos[model_asset_name]["server_version"] = "-"
+
             for version in versions_list:
                 try:
                     model_version_info = storage_provider.get_asset_meta(
@@ -225,6 +244,26 @@ def get_models_meta(
                                 model_infos[model_asset_name][
                                     "reward_ports"
                                 ] = reward_ports
+                                recom_port = random.choice(recom_ports)
+                                status = check_port(port=recom_port)
+                                if status == 0:
+                                    recom_ports_status = "running"
+                                else:
+                                    recom_ports_status = "failed"
+
+                                reward_port = random.choice(reward_ports)
+                                status = check_port(port=reward_port)
+                                if status == 0:
+                                    reward_ports_status = "running"
+                                else:
+                                    reward_ports_status = "failed"
+
+                                model_infos[model_asset_name][
+                                    "recom_ports_status"
+                                ] = recom_ports_status
+                                model_infos[model_asset_name][
+                                    "reward_ports_status"
+                                ] = reward_ports_status
                 except:
                     print(traceback.format_exc())
                     continue

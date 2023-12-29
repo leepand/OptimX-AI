@@ -694,7 +694,8 @@ def model_details(modelname, section, env, version):
                     update_push(**push_params)
                 filename = os.path.join(log_path, f"{filename}.log")
             if ops == "restart":
-                test = ServiceMgr([modelname], env=env)
+                # ops = request.args.get("version")
+                test = ServiceMgr([f"{modelname}:{version}"], env=env)
                 test.start_service()
                 ops = "model_logs"
                 filename = "all"
@@ -837,8 +838,10 @@ def model_details(modelname, section, env, version):
             context["recom_status"] = "not deployed"
             if len(recomserver_ports_list) > 0:
                 recom_port = recomserver_ports_list[0]
-                pid_list = current_service.get_pid_from_port_node(recom_port)
-                if len(pid_list) > 0:
+                # pid_list = current_service.get_pid_from_port_node(recom_port)
+                status_port = current_service.get_port_status(recom_port)
+                # if len(pid_list) > 0:
+                if status_port == 0:
                     context["recom_status"] = "running"
                 else:
                     context["recom_status"] = "failed"
@@ -846,8 +849,11 @@ def model_details(modelname, section, env, version):
             context["reward_status"] = "not deployed"
             if len(rewardserver_ports_list) > 0:
                 reward_port = rewardserver_ports_list[0]
-                pid_list = current_service.get_pid_from_port_node(reward_port)
-                if len(pid_list) > 0:
+                # pid_list = current_service.get_pid_from_port_node(reward_port)
+                status_port = current_service.get_port_status(reward_port)
+                # if len(pid_list) > 0:
+                if status_port == 0:
+                    # if len(pid_list) > 0:
                     context["reward_status"] = "running"
                 else:
                     context["reward_status"] = "failed"
@@ -913,7 +919,7 @@ def view_log():
 
     try:
         content = current_service.read_log(
-            filename, session_key=session_key, seek_tail=seek_tail
+            filename, session_key="session_key", seek_tail=seek_tail
         )
     except KeyError:
         error_msg = "File not found. Only files passed through args are allowed."
