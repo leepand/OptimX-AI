@@ -175,9 +175,10 @@ Options:
 示例：
 
 ```shell
-optimx assets deploy --name uni_pricing_rl --version 0.1 --local-path uni_pricing_rl --filename 0.1
+optimx assets deploy --name uni_pricing_rl --version 0.1 --local-path uni_pricing_rl --filename 0.1 --local-path uni_pricing_rl --filename 0.1
 
--local-path uni_pricing_rl --filename 0.1
+##### logs:
+
 Destination assets provider:
  - storage driver = `REST API`
  - remote model name = `uni_pricing_rl`
