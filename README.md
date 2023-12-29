@@ -150,6 +150,26 @@ class ModelWithAsset(Model):
 - 将文件写入资产目录（由ASSETS_DIR控制）
 - 相应地设置Model.asset_path属性。
 
+模型拉取：
+
+```bash
+optimx assets clone --name dark_period_boost --profile prod --version 0.0 --provider rest --localdir dark_period_boost
+
+### Logs:
+Destination assets provider:
+ - storage driver = `REST API`
+ - remote model name = `dark_period_boost`
+ - remote model version = `0.0`
+Current asset: `dark_period_boost`
+ - clone assets from = `DAFU models repo` 
+ - remote host = `http://xx.xxx.xxx.xxx:5006`
+[y/N]: y
+ - model data to path = `dark_period_boost/dark_period_boost` 
+ - model data from env = `prod` 
+ - model name = `dark_period_boost` 
+ - model version = `0.0`
+```
+
 #### 模型资产的部署 
 
 Step1 本地向生产/开发服务器上传代码:
