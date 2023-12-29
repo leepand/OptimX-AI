@@ -19,6 +19,21 @@ import time
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
+from datetime import datetime
+from datetime import timezone
+from datetime import timedelta
+
+SHA_TZ = timezone(
+    timedelta(hours=8),
+    name="Asia/Shanghai",
+)
+
+
+def get_bj_day_time(sec, what):
+    utc_now = datetime.utcnow().replace(tzinfo=timezone.utc)
+    beijing_now = utc_now.astimezone(SHA_TZ)
+    return beijing_now.timetuple()
+
 
 LOG_BASE_PATH = "/root/log"
 LOG_PREDICT_PATH = "/root/log/predict_log"
@@ -54,6 +69,7 @@ def colorize(string, color, bold=False, highlight=False):
 
 
 def init():
+    logging.Formatter.converter = get_bj_day_time
     logging.basicConfig(level=logging.DEBUG)
     all_log_name = def_logs_fnames
 
