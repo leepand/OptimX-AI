@@ -257,3 +257,7 @@ optimx指这些用于将模型加载为资产的支持文件和目录。
 Model:
 
 ![model](resources/model-overview.jpg)
+
+Model Push:
+
+![model-push](resources/model-push.jpg)
