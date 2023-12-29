@@ -71,12 +71,12 @@ class LocalService(object):
     def __init__(self, node):
         self.node = node
 
-    def get_model_assets(self, filters=None):
+    def get_model_assets(self, filters=None, model_names=[]):
         filters = filters or {}
         model_infos = {}
         for k, v in filters.items():
             if v in ALLOWED_ENV:
-                model_infos_sub = get_models_meta(env=v)
+                model_infos_sub = get_models_meta(env=v, model_names=model_names)
                 model_infos["env"] = v
                 model_infos["model_infos_sub"] = model_infos_sub
         return model_infos

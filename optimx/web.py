@@ -72,6 +72,8 @@ def fromtimestamp(value, dateformat="%Y-%m-%d %H:%M:%S"):
 
 
 def fromtimestamp2(value, dateformat="%Y-%m-%d %H:%M:%S"):
+    if isinstance(value, float):
+        value = datetime.fromtimestamp(int(value))
     value = value.astimezone(SHA_TZ)
     dt = value.strftime(dateformat)
     return dt
@@ -319,6 +321,7 @@ def index():
 
         models["model_version_cnt"] = model_version_cnt
         # print(user_info,"user_info")
+        is_xhr = "x-requested-with" in request.headers
         data = {
             "models": models,
             "load_avg": sysinfo["load_avg"],
@@ -331,7 +334,7 @@ def index():
             "net_interfaces": netifs,
             "page": "overview",
             "user_info": user_info,
-            "is_xhr": request.headers.get("X-Requested-With"),
+            "is_xhr": is_xhr,
         }
 
         return render_template("index.html", **data)
@@ -356,7 +359,7 @@ def processes(sort="pid", order="asc", filter="user"):
         procs = user_procs
 
     procs.sort(key=lambda x: x.get(sort), reverse=True if order != "asc" else False)
-
+    is_xhr = "x-requested-with" in request.headers
     return render_template(
         "processes.html",
         processes=procs,
@@ -366,7 +369,7 @@ def processes(sort="pid", order="asc", filter="user"):
         num_procs=num_procs,
         num_user_procs=num_user_procs,
         page="processes",
-        is_xhr=request.headers.get("X-Requested-With"),
+        is_xhr=is_xhr,
     )
 
 
@@ -391,11 +394,12 @@ def process(pid, section):
         errmsg = "Invalid subsection when trying to view process %d" % pid
         return render_template("error.html", error=errmsg), 404
 
+    is_xhr = "x-requested-with" in request.headers
     context = {
         "process": current_service.get_process(pid),
         "section": section,
         "page": "processes",
-        "is_xhr": request.headers.get("X-Requested-With"),  # request.is_xhr
+        "is_xhr": is_xhr,  # request.is_xhr
     }
 
     if section == "environment":
@@ -472,7 +476,7 @@ def view_networks():
         "CLOSING",
         "NONE",
     ]
-
+    is_xhr = "x-requested-with" in request.headers
     return render_template(
         "network.html",
         page="network",
@@ -481,7 +485,7 @@ def view_networks():
         socket_families=socket_families,
         socket_types=socket_types,
         states=states,
-        is_xhr=request.headers.get("X-Requested-With"),  # request.is_xhr,
+        is_xhr=is_xhr,  # request.is_xhr,
         num_conns=len(conns),
         **form_values,
     )
@@ -495,12 +499,13 @@ def view_disks():
     disks = current_service.get_disks(all_partitions=True)
     io_counters = list(current_service.get_disks_counters().items())
     io_counters.sort(key=lambda x: x[1]["read_count"], reverse=True)
+    is_xhr = "x-requested-with" in request.headers
     return render_template(
         "disks.html",
         page="disks",
         disks=disks,
         io_counters=io_counters,
-        is_xhr=request.headers.get("X-Requested-With"),
+        is_xhr=is_xhr,
     )
 
 
@@ -527,14 +532,14 @@ def view_models():
         model_infos_sub = model_assets_info["model_infos_sub"]
         models_list = list(model_infos_sub.keys())
         model_infos_sub["env"] = model_assets_info["env"]
-
+    is_xhr = "x-requested-with" in request.headers
     return render_template(
         "models.html",
         page="models",
         envs=envs,
         models=models_list,
         sub_model_info=model_infos_sub,
-        is_xhr=request.headers.get("X-Requested-With"),
+        is_xhr=is_xhr,
         **form_values,
     )
 
@@ -572,7 +577,9 @@ def model_details(modelname, section, env, version):
         errmsg = "Invalid subsection when trying to view model %d" % 1
         return render_template("error.html", error=errmsg), 404
     form_values = {"env": env}
-    model_assets_info = current_service.get_model_assets(filters=form_values)
+    model_assets_info = current_service.get_model_assets(
+        filters=form_values, model_names=[modelname]
+    )
     model_details = model_assets_info["model_infos_sub"][modelname]
     model_details["name"] = modelname
     if len(model_details["version_list"]) > 0:
@@ -583,6 +590,7 @@ def model_details(modelname, section, env, version):
 
     if version == "None":
         version = max_version
+    is_xhr = "x-requested-with" in request.headers
     context = {
         "model_info": {"name": modelname, "max_version": max_version},
         "section": section,
@@ -590,7 +598,7 @@ def model_details(modelname, section, env, version):
         "current_version": version,
         "model_details": model_details,
         "page": "models",
-        "is_xhr": request.headers.get("X-Requested-With"),  # request.is_xhr
+        "is_xhr": is_xhr,  # request.is_xhr
     }
 
     model_version_files = model_details[version].get("contents", [])
@@ -885,11 +893,12 @@ def view_logs():
     available_logs = list(current_service.get_logs())
     # available_logs.sort(cmp=lambda x1, x2: locale.strcoll(x1['path'], x2['path']))
 
+    is_xhr = "x-requested-with" in request.headers
     return render_template(
         "logs.html",
         page="logs",
         logs=available_logs,
-        is_xhr=request.headers.get("X-Requested-With"),
+        is_xhr=is_xhr,
     )
 
 
@@ -909,12 +918,15 @@ def view_log():
     except KeyError:
         error_msg = "File not found. Only files passed through args are allowed."
         # if request.is_xhr:
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        if "x-requested-with" in request.headers:
             return error_msg
         return render_template("error.html", error=error_msg), 404
 
     # if request.is_xhr:
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+    if "x-requested-with" in request.headers:
+        # if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        # print(content,"x-requested-with")
+        # print(request.headers)
         return content
 
     return render_template("log.html", page="logs", content=content, filename=filename)

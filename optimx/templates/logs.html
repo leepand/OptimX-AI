@@ -24,8 +24,8 @@
                             </a>
                         </td>
                         <td>{{ log.size|filesizeformat }}</td>
-                        <td>{{ log.atime|fromtimestamp }}</td>
-                        <td>{{ log.mtime|fromtimestamp }}</td>
+                        <td>{{ log.atime|fromtimestamp2 }}</td>
+                        <td>{{ log.mtime|fromtimestamp2 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

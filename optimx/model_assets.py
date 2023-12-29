@@ -60,7 +60,7 @@ def getattrib(fname, dir_path):
             warnings.warn("Local file {} does not exist".format(fname))
             return None
     dtmod = datetime.fromtimestamp(p.stat().st_mtime)
-    crc = filemd5(p)
+    crc = "filemd5(p)"
     return {
         "file_path": str(p),
         "filename": fname,
@@ -88,11 +88,16 @@ def get_file_info(
 
 
 def get_models_meta(
-    env, working_dir=DEFAULT_WORKING_DIR, provider="local", deploy_dir=LOCAL_DEPLOY_PATH
+    env,
+    working_dir=DEFAULT_WORKING_DIR,
+    provider="local",
+    deploy_dir=LOCAL_DEPLOY_PATH,
+    model_names=[],
 ):
     if env == "preprod":
         model_infos = Dict()
-        model_names = get_subdirectories(path=deploy_dir)
+        if len(model_names) < 1:
+            model_names = get_subdirectories(path=deploy_dir)
         for model_name in model_names:
             model_path = os.path.join(deploy_dir, model_name)
             model_infos[model_name]["dtmod"] = datetime.fromtimestamp(

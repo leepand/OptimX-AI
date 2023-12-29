@@ -172,6 +172,23 @@ Options:
 
 **注意** 上传前需要修改config.py/utils.py 中，MODEL_ENV/VERSION的实际值。
 
+示例：
+
+```shell
+optimx assets deploy --name uni_pricing_rl --version 0.1 --local-path uni_pricing_rl --filename 0.1
+
+-local-path uni_pricing_rl --filename 0.1
+Destination assets provider:
+ - storage driver = `REST API`
+ - remote model name = `uni_pricing_rl`
+ - remote model version = `0.1`
+Current asset: `uni_pricing_rl/0.1`
+ - deploy destination = `Model will send to DAFU models repo` 
+ - remote host = `http://xx.xx.xx.xx:5006`
+[y/N]: y
+{'status': 'ok', 'details': 'model repo /home/ec2-user/models_deploy/local_models_optimx/uni_pricing_rl/.cache/0.1.tgz is created!'}
+```
+
 Step2 在生产/开发服务器执行push：
 
 

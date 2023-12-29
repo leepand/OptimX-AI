@@ -543,7 +543,7 @@ model_port = MODEL_SERVER_HOST["port"]
 @click.option(
     "--service",
     "-s",
-    help="service name: model_server",
+    help="service name: model_server/main",
     type=str,
     default="model_server",
     show_default=True,

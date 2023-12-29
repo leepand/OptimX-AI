@@ -5,9 +5,8 @@ from optimx import make
 
 import traceback
 import numpy as np
-import json
-import os
-from utils import MODEL_ENV
+
+from utils import MODEL_ENV, VERSION, json_dumps_data
 
 
 class RewardServer(Model):
@@ -37,6 +36,11 @@ class RewardServer(Model):
                 str(traceback.format_exc()),
             ]
             log_reward_error([error_content])
+            debug_content = [
+                f"{self.model_name}:{request_id}-debug",
+                json_dumps_data(debug_content),
+            ]
+            log_reward_debug([debug_content])
             return items
 
 
