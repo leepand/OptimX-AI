@@ -17,6 +17,8 @@ from optimx.utils.sys_utils import check_port
 import optimx.ext.shellkit as sh
 import random
 
+from optimx.utils.file_utils import Page
+
 DEFAULT_WORKING_DIR = data_dir()
 ALLOWED_ENV = ["dev", "prod", "preprod"]
 
@@ -37,6 +39,23 @@ def get_subdirectories(path):
         if entry.is_dir() and not entry.name.startswith((".", "__")):
             subdirectories.append(entry.name)
     return subdirectories
+
+
+def get_subdirectories_sorted_by_time(directory, prefix_to_exclude=""):
+    subdirectories = [
+        os.path.join(directory, name)
+        for name in os.listdir(directory)
+        if os.path.isdir(os.path.join(directory, name))
+    ]
+    subdirectories_sorted = sorted(
+        subdirectories, key=lambda d: os.path.getmtime(d), reverse=True
+    )
+    subdirectory_names = [
+        os.path.basename(subdir)
+        for subdir in subdirectories_sorted
+        if not os.path.basename(subdir).startswith(prefix_to_exclude)
+    ]
+    return subdirectory_names
 
 
 def filemd5(fname):
@@ -96,11 +115,55 @@ def get_models_meta(
     provider="local",
     deploy_dir=LOCAL_DEPLOY_PATH,
     model_names=[],
+    page_info=None,
+    search_model_name=None,
 ):
     if env == "preprod":
         model_infos = Dict()
         if len(model_names) < 1:
-            model_names = get_subdirectories(path=deploy_dir)
+            if page_info is not None:
+                # page_info = {"previous": previous, "next": next, "page_index": page_index}
+                ori_model_names = get_subdirectories_sorted_by_time(
+                    directory=deploy_dir, prefix_to_exclude=(".", "__")
+                )
+                if search_model_name is not None:
+                    ori_model_names = [
+                        item for item in ori_model_names if search_model_name in item
+                    ]
+                length_of_names = len(ori_model_names)
+                previous = page_info.get("previous")
+                next = page_info.get("next")
+                page_index = page_info.get("page_index")
+                pg = Page(
+                    item_count=length_of_names, page_index=page_index, page_size=4
+                )
+                if previous == "1":
+                    if pg.has_previous:
+                        pg.page_index -= 1
+                if next == "1":
+                    if pg.has_next:
+                        pg.page_index += 1
+                pg2 = Page(
+                    item_count=length_of_names, page_index=pg.page_index, page_size=7
+                )
+                model_names = ori_model_names[pg2.offset : pg2.offset + pg2.limit]
+                page_count = pg2.page_count
+                page_index = pg2.page_index
+                has_previous = pg2.has_previous
+                has_next = pg2.has_next
+                page_list = [i + 1 for i in range(page_count)]
+                model_infos["page_info"] = {
+                    "page_count": page_count,
+                    "pages": page_list,
+                    "current_page": page_index,
+                    "has_previous": has_previous,
+                    "has_next": has_next,
+                    # "ori_model_names":ori_model_names,
+                    # "pg2.offset":pg2.offset,
+                    # "pg2.limit":pg2.limit
+                }
+            else:
+                model_names = get_subdirectories(path=deploy_dir)
         for model_name in model_names:
             model_path = os.path.join(deploy_dir, model_name)
             model_infos[model_name]["dtmod"] = datetime.fromtimestamp(
@@ -153,7 +216,55 @@ def get_models_meta(
     try:
         env_base_path = os.path.join(working_dir, env)
         if len(model_names) < 1:
-            model_list_for_iter = storage_provider.iterate_assets()
+            # model_list_for_iter = storage_provider.iterate_assets()
+            if page_info is not None:
+                # page_info = {"previous": previous, "next": next, "page_index": page_index}
+                ori_model_names = get_subdirectories_sorted_by_time(
+                    directory=env_base_path, prefix_to_exclude=(".", "__")
+                )
+                if search_model_name is not None:
+                    ori_model_names = [
+                        item for item in ori_model_names if search_model_name in item
+                    ]
+                length_of_names = len(ori_model_names)
+                previous = page_info.get("previous")
+                next = page_info.get("next")
+                page_index = page_info.get("page_index")
+                pg = Page(
+                    item_count=length_of_names, page_index=page_index, page_size=4
+                )
+                if previous == "1":
+                    if pg.has_previous:
+                        pg.page_index -= 1
+                if next == "1":
+                    if pg.has_next:
+                        pg.page_index += 1
+                pg2 = Page(
+                    item_count=length_of_names, page_index=pg.page_index, page_size=7
+                )
+                model_names = ori_model_names[pg2.offset : pg2.offset + pg2.limit]
+                page_count = pg2.page_count
+                page_index = pg2.page_index
+                has_previous = pg2.has_previous
+                has_next = pg2.has_next
+                page_list = [i + 1 for i in range(page_count)]
+                model_infos["page_info"] = {
+                    "page_count": page_count,
+                    "current_page": page_index,
+                    "has_previous": has_previous,
+                    "has_next": has_next,
+                    "pages": page_list
+                    # "ori_model_names":ori_model_names,
+                    # "model_names":model_names,
+                    # "pg2.offset":pg2.offset,
+                    # "pg2.limit":pg2.limit
+                }
+                model_list_for_iter = []
+                for name in model_names:
+                    versions = list(set(storage_provider.get_versions_info(name)))
+                    model_list_for_iter.append((name, versions))
+            else:
+                model_list_for_iter = storage_provider.iterate_assets()
         else:
             model_list_for_iter = []
             for name in model_names:
@@ -272,4 +383,3 @@ def get_models_meta(
         pass
 
     return model_infos
-

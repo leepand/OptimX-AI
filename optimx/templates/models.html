@@ -30,7 +30,9 @@
                                     {% endif %}  
                                 </tr>
                                 <tr>
-                                    <th></th>
+                                    <th>
+                                        <input type="text" name="model_name" value="{{ search_model_name }}" />
+                                    </th>
                                     <th>
                                         <select name="env">
                                             {% for key,val in envs.items() %}
@@ -103,6 +105,43 @@
                             </tbody>
                         </table>
                     </form>
+                    <nav aria-label="Page navigation" style="bottom: 0; position: relative;right: 0;">
+                        <ul class="pagination" style="margin-bottom: 5px;">
+                          <li>
+                            <a href="{{ url_for(".view_models",
+                            previous="1", 
+                            next="0",
+                            page_index=sub_model_info["page_info"]["current_page"], 
+                            env=sub_model_info["env"])}}" aria-label="Previous">
+                              <span aria-hidden="true">&laquo;</span>
+                            </a>
+                          </li>
+                          {% for page in sub_model_info["page_info"]["pages"] %}
+                            {% if sub_model_info["page_info"]["current_page"]==page %}
+                                <li class="active"><a href="{{ url_for(".view_models",
+                                    previous="0", 
+                                    next="0",
+                                    page_index=page, 
+                                    env=sub_model_info["env"])}}">{{page}}</a></li>
+                            {%else%}
+                                <li><a href="{{ url_for(".view_models",
+                                    previous="0", 
+                                    next="0",
+                                    page_index=page, 
+                                    env=sub_model_info["env"])}}">{{page}}</a></li>
+                            {%endif%}         
+                          {% endfor %}
+                          <li>
+                            <a href="{{ url_for(".view_models",
+                            previous="0", 
+                            next="1",
+                            page_index=sub_model_info["page_info"]["current_page"], 
+                            env=sub_model_info["env"])}}" aria-label="Next">
+                              <span aria-hidden="true">&raquo;</span>
+                            </a>
+                          </li>
+                        </ul>
+                      </nav>
             </div>
     </div>
 {% endblock %}

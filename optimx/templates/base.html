@@ -82,7 +82,9 @@
                                 </a>
                             </li>
                             <li {% if page == "models" %}class="active"{% endif %}>
-                                <a href="{{ url_for(".view_models") }}">
+                                <a href="{{ url_for(".view_models",previous="0", 
+                                                next="0",
+                                                page_index=1) }}">
                                     <span class="glyphicon glyphicon-cloud-upload"></span>
                                     <span class="option-text">Models</span>
                                 </a>

@@ -515,23 +515,36 @@ def view_models():
     if result == "not_logged":
         return render_template("home.html")
     envs = {e: e for e in ALLOWED_ENV}
-    form_keys = {
-        "pid": "",
-        "env": envs["dev"],
-        "type": socket_types[socket.SOCK_STREAM],
-        "state": "LISTEN",
-    }
+    previous = request.args.get("previous")
+    next = request.args.get("next")
+    page_index = request.args.get("page_index")
+    page_info = None
+    if page_index:
+        page_info = {"previous": previous, "next": next, "page_index": int(page_index)}
+    else:
+        page_info = {"previous": "0", "next": "0", "page_index": 1}
+
+    form_keys = {"env": envs["dev"]}
     form_values = dict(
         (k, request.args.get(k, default_val)) for k, default_val in form_keys.items()
     )
-    model_assets_info = current_service.get_model_assets(filters=form_values)
+
+    for k in ["model_name"]:
+        val = request.args.get(k, "")
+        form_values["search_" + k] = val
+
+    model_assets_info = current_service.get_model_assets(
+        filters=form_values, page_info=page_info
+    )
     models_list = []
     model_infos_sub = {}
 
     if model_assets_info["model_infos_sub"]:
         model_infos_sub = model_assets_info["model_infos_sub"]
         models_list = list(model_infos_sub.keys())
+        models_list = [model for model in models_list if model != "page_info"]
         model_infos_sub["env"] = model_assets_info["env"]
+        # print(model_assets_info, "test")
     is_xhr = "x-requested-with" in request.headers
     return render_template(
         "models.html",

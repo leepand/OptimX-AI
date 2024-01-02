@@ -71,14 +71,24 @@ class LocalService(object):
     def __init__(self, node):
         self.node = node
 
-    def get_model_assets(self, filters=None, model_names=[]):
+    def get_model_assets(self, filters=None, model_names=[], page_info=None):
         filters = filters or {}
         model_infos = {}
-        for k, v in filters.items():
-            if v in ALLOWED_ENV:
-                model_infos_sub = get_models_meta(env=v, model_names=model_names)
-                model_infos["env"] = v
-                model_infos["model_infos_sub"] = model_infos_sub
+        env = filters.get("env")
+        if env in ALLOWED_ENV:
+            search_model_name = filters.get("search_model_name")
+            if search_model_name:
+                search_model_name = search_model_name
+            else:
+                search_model_name = None
+            model_infos_sub = get_models_meta(
+                env=env,
+                model_names=model_names,
+                page_info=page_info,
+                search_model_name=search_model_name,
+            )
+            model_infos["env"] = env
+            model_infos["model_infos_sub"] = model_infos_sub
         return model_infos
 
     def get_models_origin(self, v):
