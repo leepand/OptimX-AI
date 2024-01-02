@@ -542,7 +542,9 @@ def view_models():
     if model_assets_info["model_infos_sub"]:
         model_infos_sub = model_assets_info["model_infos_sub"]
         models_list = list(model_infos_sub.keys())
-        models_list = [model for model in models_list if model != "page_info"]
+        models_list = [
+            model for model in models_list if model not in ["model_cnt", "page_info"]
+        ]
         model_infos_sub["env"] = model_assets_info["env"]
         # print(model_assets_info, "test")
     is_xhr = "x-requested-with" in request.headers

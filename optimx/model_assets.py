@@ -126,6 +126,7 @@ def get_models_meta(
                 ori_model_names = get_subdirectories_sorted_by_time(
                     directory=deploy_dir, prefix_to_exclude=(".", "__")
                 )
+                model_infos["model_cnt"] = len(ori_model_names)
                 if search_model_name is not None:
                     ori_model_names = [
                         item for item in ori_model_names if search_model_name in item
@@ -164,6 +165,7 @@ def get_models_meta(
                 }
             else:
                 model_names = get_subdirectories(path=deploy_dir)
+                model_infos["model_cnt"] = len(model_names)
         for model_name in model_names:
             model_path = os.path.join(deploy_dir, model_name)
             model_infos[model_name]["dtmod"] = datetime.fromtimestamp(
@@ -222,6 +224,7 @@ def get_models_meta(
                 ori_model_names = get_subdirectories_sorted_by_time(
                     directory=env_base_path, prefix_to_exclude=(".", "__")
                 )
+                model_infos["model_cnt"] = len(ori_model_names)
                 if search_model_name is not None:
                     ori_model_names = [
                         item for item in ori_model_names if search_model_name in item
@@ -265,6 +268,7 @@ def get_models_meta(
                     model_list_for_iter.append((name, versions))
             else:
                 model_list_for_iter = storage_provider.iterate_assets()
+                model_infos["model_cnt"] = len(model_list_for_iter)
         else:
             model_list_for_iter = []
             for name in model_names:

@@ -8,8 +8,12 @@
 
             <div class="box">
                 <div class="box-header">
-                    <span>Deployed Models</span>
-                    <small class="pull-right">Listing {{ models|count() }} models</small>
+                    {%if sub_model_info["env"]=="preprod" %}
+                        <span>Ready Models</span>
+                    {%else%}
+                        <span>Deployed Models</span>
+                    {% endif %}  
+                    <small class="pull-right">Listing {{ models|count() }}/{{sub_model_info.model_cnt}} models</small>
                 </div>
                 <div class="box-content">
                     <form id="connections-form" action="" method="get">
