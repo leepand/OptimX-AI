@@ -314,9 +314,14 @@ def index():
         model_version_cnt = 0
 
         for model in list(models_dev.keys()):
+            if model in ["model_cnt", "page_info"]:
+                continue
             model_version_cnt += len(models_dev[model]["version_list"])
 
+        model_version_cnt = 0
         for model in list(models_prod.keys()):
+            if model in ["model_cnt", "page_info"]:
+                continue
             model_version_cnt += len(models_prod[model]["version_list"])
 
         models["model_version_cnt"] = model_version_cnt

@@ -268,7 +268,9 @@ def get_models_meta(
                     model_list_for_iter.append((name, versions))
             else:
                 model_list_for_iter = storage_provider.iterate_assets()
-                model_infos["model_cnt"] = len(model_list_for_iter)
+                # generator_obj = model_list_for_iter
+                # list_obj = list(generator_obj)
+                model_infos["model_cnt"] = 0
         else:
             model_list_for_iter = []
             for name in model_names:
@@ -276,6 +278,8 @@ def get_models_meta(
                 model_list_for_iter.append((name, versions))
 
         for model_asset_name, versions_list in model_list_for_iter:
+            if len(model_names) < 1:
+                model_infos["model_cnt"] += 1
             # print(asset_name, versions_list,storage_provider.get_versions_info(asset_name))
             model_infos[model_asset_name]["version_list"] = sorted(
                 list(set(versions_list)), key=str, reverse=True

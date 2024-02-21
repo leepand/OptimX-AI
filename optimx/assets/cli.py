@@ -654,7 +654,7 @@ def pull_code(name, profile, version, localdir, provider, bucket, team_repo_path
 )
 def deploy(name, version, local_path, filename, team_repo_path):
     host = None
-    if team_repo_path in ["cf", "df"]:
+    if team_repo_path in ["cf", "df", "df2"]:
         host = REMOTE_MODEL_SERVER[team_repo_path]
         rest_client = RestClient(host=host)
     else:
@@ -675,6 +675,8 @@ def deploy(name, version, local_path, filename, team_repo_path):
         push_dest = "Model will send to CF models repo"
     elif team_repo_path == "df":
         push_dest = "Model will send to DAFU models repo"
+    elif team_repo_path == "df2":
+        push_dest = "Model will send to DAFU models repo2"
 
     print(f" - deploy destination = `{push_dest}` ")
     print(f" - remote host = `{host}`")

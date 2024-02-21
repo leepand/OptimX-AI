@@ -144,7 +144,7 @@ async def deploy_model(
 ):
     try:
         if file:
-            if server_base_path == "df":
+            if server_base_path in ["df","df2"]:
                 _server_base_path = REMOTE_PREDEPLOY_PATH_DICT["df"]
             elif server_base_path == "cf":
                 _server_base_path = REMOTE_PREDEPLOY_PATH_DICT["cf"]

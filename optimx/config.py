@@ -57,4 +57,5 @@ LOCAL_DEPLOY_PATH = (
 REMOTE_MODEL_SERVER = {
     "cf": "http://34.210.82.189:8915",
     "df": "http://54.214.110.168:5006",
+    "df2": "http://35.165.37.114:5006",
 }

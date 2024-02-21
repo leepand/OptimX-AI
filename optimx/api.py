@@ -263,6 +263,8 @@ class Client:
         super().__init__()
 
     def predict(self, payload, name="predict/recomserver"):
+        if isinstance(payload, list):
+            name = name.replace("predict", "predict/batch")
         ret = requests.post(f"{self.base_url}/{name}", json=payload)
         if ret.status_code == 200:
             return ret.json()
