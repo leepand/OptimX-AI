@@ -13,6 +13,7 @@ import tarfile
 import gzip
 import tempfile
 import errno
+from ..config import remote_repo_path
 
 
 def data_dir_default():
@@ -27,12 +28,15 @@ def data_dir_default():
         return os.path.join(os.path.expanduser("~"), ".optimx")
 
 
-def data_dir():
+def data_dir(env="prod", provider="rest", server="df2"):
     """
 
     :return: data directory in the filesystem for storage, for example when downloading models
     """
-    return os.getenv("OPTIMX_HOME", data_dir_default())
+    if provider == "local":
+        return os.getenv("OPTIMX_HOME", data_dir_default())
+    else:
+        return remote_repo_path[server][env]
 
 
 @contextlib.contextmanager

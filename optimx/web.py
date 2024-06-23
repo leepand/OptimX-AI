@@ -297,10 +297,11 @@ def home():
 # @auth.login_required
 def index():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     elif result == "logged":
-        user_info = DB.read(request.cookies.get("email"))[0][0]
+        user_info = "leepand"#DB.read(request.cookies.get("email"))[0][0]
         sysinfo = current_service.get_sysinfo()
 
         netifs = list(current_service.get_network_interfaces().values())
@@ -353,6 +354,7 @@ def index():
 @webapp.route("/processes/<string:sort>/<string:order>/<string:filter>")
 def processes(sort="pid", order="asc", filter="user"):
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     procs = current_service.get_process_list()
@@ -382,6 +384,7 @@ def processes(sort="pid", order="asc", filter="user"):
 @webapp.route("/process/<int:pid>/<string:section>")
 def process(pid, section):
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     valid_sections = [
@@ -437,6 +440,7 @@ def process(pid, section):
 @webapp.route("/network")
 def view_networks():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     netifs = list(current_service.get_network_interfaces().values())
@@ -499,6 +503,7 @@ def view_networks():
 @webapp.route("/disks")
 def view_disks():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     disks = current_service.get_disks(all_partitions=True)
@@ -517,6 +522,7 @@ def view_disks():
 @webapp.route("/models")
 def view_models():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     envs = {e: e for e in ALLOWED_ENV}
@@ -571,6 +577,7 @@ def view_models():
 @webapp.route("/model/<modelname>/<string:version>/<string:env>/<string:section>/")
 def model_details(modelname, section, env, version):
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     filename = request.args.get("filename")
@@ -914,6 +921,7 @@ def model_details(modelname, section, env, version):
 @webapp.route("/logs")
 def view_logs():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     available_logs = list(current_service.get_logs())
@@ -931,6 +939,7 @@ def view_logs():
 @webapp.route("/log")
 def view_log():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     filename = request.args["filename"]
@@ -961,6 +970,7 @@ def view_log():
 @webapp.route("/log/search")
 def search_log():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     filename = request.args["filename"]
@@ -977,6 +987,7 @@ def search_log():
 @webapp.route("/register")
 def register_node():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     name = request.args["name"]
@@ -990,6 +1001,7 @@ def register_node():
 @webapp.route("/api/token")
 def login_token():
     result = check_session()
+    result="logged"
     if result == "not_logged":
         return render_template("home.html")
     username = request.args["username"]

@@ -591,7 +591,7 @@ def pull_code(name, profile, version, localdir, provider, bucket, team_repo_path
             force_download=False,
         )
     else:
-        if team_repo_path in ["cf", "df"]:
+        if team_repo_path in ["cf", "df","df2"]:
             host = REMOTE_MODEL_SERVER[team_repo_path]
             rest_client = RestClient(host=host)
         else:
@@ -610,8 +610,8 @@ def pull_code(name, profile, version, localdir, provider, bucket, team_repo_path
 
         if team_repo_path == "cf":
             clone_from = "CF models repo"
-        elif team_repo_path == "df":
-            clone_from = "DAFU models repo"
+        elif team_repo_path in ["df","df2"]:
+            clone_from = f"DAFU models repo {team_repo_path}"
 
         print(f" - clone assets from = `{clone_from}` ")
         print(f" - remote host = `{host}`")
