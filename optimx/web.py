@@ -44,7 +44,7 @@ auth = HTTPBasicAuth()
 logger = logging.getLogger("optimx.web")
 webapp = Blueprint("optimx", __name__, static_folder="static")
 
-users = {"admin": "admin", "leepand": 123}
+users = {"admin": "admin", "leepand": 123, "pandeng.li@163.com": 123}
 
 
 @auth.get_password
