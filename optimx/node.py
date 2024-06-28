@@ -11,6 +11,7 @@ from optimx.net import get_interface_addresses, NetIOCounters
 from optimx.utils.sys_utils import get_process_details, get_pid_from_port, check_port
 
 from optimx.model_assets import get_models_meta, get_file_info, ALLOWED_ENV
+from .log import tail_log
 
 logger = logging.getLogger("optimx.node")
 
@@ -400,10 +401,12 @@ class LocalService(object):
         return available_logs
 
     def read_log(self, filename, session_key=None, seek_tail=False):
-        log = self.node.logs.get(filename, key=session_key)
-        if seek_tail:
-            log.set_tail_position()
-        return log.read()
+        #log = self.node.logs.get(filename, key=session_key)
+        #if seek_tail:
+        #    log.set_tail_position()
+        #return log.read()
+        return tail_log(log_file_path=filename, line_count=81920)
+    
 
     def search_log(self, filename, text, session_key=None):
         log = self.node.logs.get(filename, key=session_key)
