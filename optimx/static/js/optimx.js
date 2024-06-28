@@ -22,6 +22,7 @@ function escape_regexp(str) {
   
           $.get($log.data("read-log-url"), function (resp) {
               // only scroll down if the scroll is already at the bottom.
+              $el=''
               if(($el.scrollTop() + $el.innerHeight()) >= $el[0].scrollHeight) {
                   $el.append(resp);
                   scroll_down($el);

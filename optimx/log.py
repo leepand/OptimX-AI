@@ -234,46 +234,46 @@ class Logs(object):
 def tail_log(file_path, line_count=10):
     """
     Tail the log file and stream the last `line_count` lines.
-    
+
     Args:
         file_path (str): Path to the log file.
         line_count (int): Number of lines to stream (default is 10).
     """
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         # Get the current file size
         file_size = f.seek(0, 2)
-        
+
         # If the file is empty, return
         if file_size == 0:
             return
-        
+
         # Move the file pointer to the end of the file
         f.seek(0, 2)
-        
+
         # Get the current file position
         pos = f.tell()
-        
+
         # Iterate backwards to find the last `line_count` lines
         lines = []
         while len(lines) < line_count and pos > 0:
             # Move the file pointer backward
             pos -= 1
             f.seek(pos)
-            
+
             # Read the current character
             char = f.read(1)
-            
+
             # If the current character is a newline, add the line to the list
-            if char == '\n':
+            if char == "\n":
                 lines.insert(0, f.readline().strip())
-        
+
         # If the file pointer has reached the beginning of the file,
         # read the entire file and return all the lines
         if pos < 0:
             f.seek(0)
             lines = f.readlines()
             lines = [line.strip() for line in lines]
-        
+
         # Yield the lines
         for line in lines:
             yield line

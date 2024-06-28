@@ -947,9 +947,13 @@ def view_log():
     session_key = session.get("client_id")
 
     try:
-        content = current_service.read_log(
+        content_gen = current_service.read_log(
             filename, session_key="session_key", seek_tail=seek_tail
         )
+        contents = []
+        for content in content_gen:
+            contents.append(content)
+        content = "\n".join(contents)
     except KeyError:
         error_msg = "File not found. Only files passed through args are allowed."
         # if request.is_xhr:

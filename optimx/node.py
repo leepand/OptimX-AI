@@ -401,12 +401,11 @@ class LocalService(object):
         return available_logs
 
     def read_log(self, filename, session_key=None, seek_tail=False):
-        #log = self.node.logs.get(filename, key=session_key)
-        #if seek_tail:
+        # log = self.node.logs.get(filename, key=session_key)
+        # if seek_tail:
         #    log.set_tail_position()
-        #return log.read()
-        return tail_log(log_file_path=filename, line_count=81920)
-    
+        # return log.read()
+        return tail_log(file_path=filename, line_count=1000)
 
     def search_log(self, filename, text, session_key=None):
         log = self.node.logs.get(filename, key=session_key)
