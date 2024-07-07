@@ -2,9 +2,9 @@ import abc
 from typing import Any, Dict, Iterator, Optional, Union
 
 import pydantic
+from optimx.core.settings import ModelkitSettings
 
-
-class StorageDriverSettings(pydantic.BaseSettings):
+class StorageDriverSettings(ModelkitSettings):
     bucket: str = pydantic.Field(..., env="OPTIMX_STORAGE_BUCKET")
     lazy_driver: bool = pydantic.Field(False, env="OPTIMX_LAZY_DRIVER")
 

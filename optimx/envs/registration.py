@@ -176,6 +176,8 @@ def make(id=None, help: bool = False, **kwargs):
                         meta_json["contents"] = []
                         meta_json["contents"].append(f"db/{db_name}")
 
+                    contents_db = list(set(meta_json["contents"]))
+                    meta_json["contents"] = contents_db
                     with open(meta_file, "w", encoding="utf-8") as fmeta:
                         json.dump(meta_json, fmeta)
 

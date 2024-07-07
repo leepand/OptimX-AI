@@ -33,7 +33,7 @@ install_requires =
 	#google-cloud-storage
 	azure-storage-blob
 	humanize
-	pydantic==1.10.12
+	pydantic
 	python-dateutil
 	redis
 	rich
@@ -42,10 +42,14 @@ install_requires =
 	tenacity
 	typing_extensions
 	tabulate
-	Babel>=2.3.4
-    iso8601>=0.1.11
-    python-dateutil>=2.6.0
-    pytimeparse>=1.1.5
+	Babel
+    iso8601
+    python-dateutil
+    pytimeparse
+	pyyaml
+	fastapi
+	smart_open
+	flask_httpauth
 
 [options.extras_require]
 tensorflow = 

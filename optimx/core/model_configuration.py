@@ -10,19 +10,22 @@ import pydantic
 from structlog import get_logger
 
 from optimx.core.model import Asset
+from optimx.core.settings import ModelkitSettings
 from optimx.core.types import LibraryModelsType
 
 logger = get_logger(__name__)
 
 
-class ModelConfiguration(pydantic.BaseSettings):
+class ModelConfiguration(ModelkitSettings):
     model_type: Type[Asset]
     asset: Optional[str]
     env: Optional[str]
     model_settings: Optional[Dict[str, Any]] = {}
     model_dependencies: Optional[Dict[str, str]]
 
-    @pydantic.validator("model_dependencies", always=True, pre=True)
+    model_config = pydantic.ConfigDict(protected_namespaces=("settings",))
+
+    @pydantic.field_validator("model_dependencies", mode="before")
     def validate_dependencies(cls, v):
         if not v:
             return {}
