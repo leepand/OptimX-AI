@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterator, Optional, Union
 import pydantic
 from optimx.core.settings import ModelkitSettings
 
+
 class StorageDriverSettings(ModelkitSettings):
     bucket: str = pydantic.Field(..., env="OPTIMX_STORAGE_BUCKET")
     lazy_driver: bool = pydantic.Field(False, env="OPTIMX_LAZY_DRIVER")
@@ -64,5 +65,4 @@ class StorageDriver(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def build_client(client_configuration: Dict[str, Any]) -> Any:
-        ...
+    def build_client(client_configuration: Dict[str, Any]) -> Any: ...

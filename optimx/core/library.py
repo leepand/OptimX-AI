@@ -3,6 +3,7 @@ ModelLibrary
 
 Ask for model using get. Handle loading, refresh...
 """
+
 import collections
 import os
 import re
@@ -41,7 +42,7 @@ from optimx.utils.memory import PerformanceTracker
 from optimx.utils.pretty import describe
 from optimx.utils.redis import RedisCacheException
 
-from optimx.utils.file_utils import data_dir
+from ..env import Config
 
 logger = get_logger(__name__)
 
@@ -196,9 +197,9 @@ class ModelLibrary:
             name=model_name,
             time=humanize.naturaldelta(m.time, minimum_unit="seconds"),
             time_s=m.time,
-            memory=humanize.naturalsize(m.increment)
-            if m.increment is not None
-            else None,
+            memory=(
+                humanize.naturalsize(m.increment) if m.increment is not None else None
+            ),
             memory_bytes=m.increment,
         )
 
@@ -261,11 +262,16 @@ class ModelLibrary:
         self.env = configuration.env
         if not self.env:
             self.env = "dev"
-        base_asset_path = os.path.join(data_dir(), self.env, model_name)
+
+        config = Config()
+        base_model_path = config.get_base_model_path()
+        base_asset_path = os.path.join(base_model_path, self.env, model_name)
         self.models[model_name] = configuration.model_type(
-            asset_path=self.assets_info[configuration.asset].path
-            if configuration.asset
-            else base_asset_path,
+            asset_path=(
+                self.assets_info[configuration.asset].path
+                if configuration.asset
+                else base_asset_path
+            ),
             model_dependencies=model_dependencies,
             service_settings=self.settings,
             model_settings=model_settings or {},

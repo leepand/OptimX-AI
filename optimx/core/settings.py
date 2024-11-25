@@ -3,6 +3,7 @@ from typing import Optional, Union
 import pydantic
 import pydantic_settings
 
+
 class ModelkitSettings(pydantic_settings.BaseSettings):
     """
     Custom pydantic settings needed to allow setting both:
@@ -32,6 +33,7 @@ class ModelkitSettings(pydantic_settings.BaseSettings):
     """
 
     model_config = pydantic.ConfigDict(extra="ignore")
+
 
 class TFServingSettings(ModelkitSettings):
     enable: bool = pydantic.Field(False, env="OPTIMX_TF_SERVING_ENABLE")

@@ -3,24 +3,25 @@ import re
 from pathlib import Path, PurePosixPath
 from structlog import get_logger
 
-from optimx.config import MODEL_BASE_PATH
 from optimx.utils.addict import Dict
 from optimx.envs.build_context import prebuild_server
 from optimx.ext import YAMLDataSet
 from optimx.assets.remote import StorageProvider
 import traceback
 import optimx.ext.shellkit as sh
+from ..env import Config
 
 logger = get_logger(__name__)
 
 
 class ServiceMgr:
-    def __init__(
-        self, models, env="dev", provider="local", bucket=MODEL_BASE_PATH
-    ) -> None:
+    def __init__(self, models, env="dev", provider="local", bucket=None) -> None:
         self.pipes = []
         self.env = env
         self.config_file_name = f"server_{env}.yml"
+        config = Config()
+        if bucket is None:
+            bucket = config.get_base_model_path()
         self.bucket = bucket
         prefix = env
         self.storage_provider = StorageProvider(

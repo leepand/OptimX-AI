@@ -4,7 +4,6 @@ The shellkit package.
 A shell power-up for working with the file system and running subprocess commands.
 """
 
-
 from .archiving import (
     ArchiveError,
     UnsafeArchiveError,

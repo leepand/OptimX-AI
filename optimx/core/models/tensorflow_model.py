@@ -118,9 +118,9 @@ class TensorflowModel(TensorflowModelMixin, Model[ItemType, ReturnType]):
         )
 
         # the GRPC stub
-        self.grpc_stub: Optional[
-            prediction_service_pb2_grpc.PredictionServiceStub
-        ] = None
+        self.grpc_stub: Optional[prediction_service_pb2_grpc.PredictionServiceStub] = (
+            None
+        )
 
         # the session (for use with TF as an API)
         self.session = None

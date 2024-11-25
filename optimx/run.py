@@ -16,9 +16,11 @@ import zerorpc
 from optimx import __version__
 from optimx.node import LocalNode, RemoteNode
 from optimx.web import fromtimestamp, fromtimestamp2
-from optimx.config import LOGS_FILES
+from .env import Config
 
 logger = getLogger("optimx.run")
+
+LOGS_FILES = Config().get_log_files()
 
 
 class OptimXRunner(object):

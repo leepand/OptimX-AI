@@ -5,6 +5,7 @@ Some simple logging functionality, inspired by rllab's logging.
 Logs to a tab-separated-values file (path/to/output_directory/progress.txt)
 
 """
+
 import json
 import joblib
 import shutil

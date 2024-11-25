@@ -30,7 +30,7 @@ from optimx.helpers import socket_families, socket_types
 from optimx.log import Logs
 from optimx.utils.sys_utils import cat_file_content
 from optimx.model_assets import ALLOWED_ENV
-from optimx.config import MODEL_BASE_PATH
+
 import optimx.ext.shellkit as sh
 import importlib.util
 
@@ -39,6 +39,7 @@ from optimx import ServiceMgr
 from .database import DB
 from .api import Client
 from .push_model_ui import SHA_TZ
+from .env import Config
 
 auth = HTTPBasicAuth()
 logger = logging.getLogger("optimx.web")
@@ -730,6 +731,8 @@ def model_details(modelname, section, env, version):
 
             if ops == "testing":
                 version_files_path = None
+                config = Config()
+                model_base_path = config.get_base_model_path()
                 if len(model_version_files) > 0:
                     version_files_path = model_details[version].get(
                         "version_files_path"
@@ -738,8 +741,8 @@ def model_details(modelname, section, env, version):
                 if version_files_path:
                     base_path = version_files_path
                 else:
-                    base_path = os.path.join(MODEL_BASE_PATH, env, modelname, version)
-                base_path = os.path.join(MODEL_BASE_PATH, env, modelname, version)
+                    base_path = os.path.join(model_base_path, env, modelname, version)
+                base_path = os.path.join(model_base_path, env, modelname, version)
                 if filename == "recom_test":
                     import json
 
@@ -813,11 +816,13 @@ def model_details(modelname, section, env, version):
                             "version_files_path"
                         )
 
+                    config = Config()
+                    model_base_path = config.get_base_model_path()
                     if version_files_path:
                         base_path = version_files_path
                     else:
                         base_path = os.path.join(
-                            MODEL_BASE_PATH, env, modelname, version
+                            model_base_path, env, modelname, version
                         )
                     # print(base_path, "base_path")
                     log_path = os.path.join(base_path, "logs") + os.sep

@@ -8,8 +8,10 @@ from tenacity import retry
 from optimx.assets import errors
 from optimx.assets.drivers.abc import StorageDriver, StorageDriverSettings
 from optimx.assets.drivers.retry import retry_policy
-from optimx.config import MODEL_SERVER_HOST
+
 from .rest_client import RestClient
+
+from optimx.env import Config
 
 logger = get_logger(__name__)
 
@@ -98,8 +100,9 @@ class RestStorageDriver(StorageDriver):
         return blob_client.exists()
 
     def get_object_uri(self, object_name, sub_part=None):
-        host = MODEL_SERVER_HOST["host"]
-        port = MODEL_SERVER_HOST["port"]
+        config = Config()
+        host = config.get_local_model_host()
+        port = config.get_local_model_port()
         return f"http://{host}:{port}" + "/".join(
             (self.bucket, object_name, *(sub_part or "").split("/"))
         )

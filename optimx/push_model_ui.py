@@ -11,8 +11,9 @@ from optimx.assets.errors import ObjectDoesNotExistError
 
 from optimx.assets.remote import DriverNotInstalledError, StorageProvider
 from optimx.assets.settings import AssetSpec
-from optimx.utils.file_utils import data_dir
 
+# from optimx.utils.file_utils import data_dir
+from .env import Config
 import optimx.ext.shellkit as sh
 
 
@@ -68,7 +69,8 @@ def _download_object_or_prefix(driver, object_name, destination_dir):
 
 
 def new_push(name, filename, profile, log_file, dry_run=False):
-    bucket_name = data_dir()
+    config = Config()
+    bucket_name = config.get_base_model_path()
     sh.mkdir(bucket_name)
     asset_spec = name
     provider = os.environ.get("OPTIMX_STORAGE_PROVIDER", "local")
@@ -125,7 +127,8 @@ def new_push(name, filename, profile, log_file, dry_run=False):
 def update_push(
     name, filename, profile, bump_major, newversion, log_file, dry_run=False
 ):
-    bucket_name = data_dir()
+    config = Config()
+    bucket_name = config.get_base_model_path()
     sh.mkdir(bucket_name)
     asset_spec = name
     provider = os.environ.get("OPTIMX_STORAGE_PROVIDER", "local")

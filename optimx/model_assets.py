@@ -9,17 +9,16 @@ import hashlib
 import re
 
 from optimx.assets.remote import StorageProvider
-from optimx.utils.file_utils import data_dir
 from optimx.utils.addict import Dict
 from optimx.ext import YAMLDataSet
-from optimx.config import LOCAL_DEPLOY_PATH
+
 from optimx.utils.sys_utils import check_port
 import optimx.ext.shellkit as sh
 import random
 
 from optimx.utils.file_utils import Page
+from .env import Config
 
-DEFAULT_WORKING_DIR = data_dir()
 ALLOWED_ENV = ["dev", "prod", "preprod"]
 
 
@@ -97,9 +96,15 @@ def get_file_info(
     name,
     version,
     filenames,
-    working_dir=DEFAULT_WORKING_DIR,
-    deploy_dir=LOCAL_DEPLOY_PATH,
+    working_dir=None,
+    deploy_dir=None,
 ):
+    config = Config()
+    if working_dir is None:
+        working_dir = config.get_base_model_path()
+
+    if deploy_dir is None:
+        deploy_dir = config.get_model_path(env="preprod")
     if env == "preprod":
         env_base_path = os.path.join(deploy_dir, name, version)
     else:
@@ -111,13 +116,22 @@ def get_file_info(
 
 def get_models_meta(
     env,
-    working_dir=DEFAULT_WORKING_DIR,
+    working_dir=None,
     provider="local",
-    deploy_dir=LOCAL_DEPLOY_PATH,
+    deploy_dir=None,
     model_names=[],
     page_info=None,
     search_model_name=None,
 ):
+    config = Config()
+    if working_dir is None:
+        working_dir = config.get_base_model_path()
+
+    if deploy_dir is None:
+        deploy_dir = config.get_model_path(env="preprod")
+    if env == "preprod":
+        env_base_path = os.path.join(deploy_dir, name, version)
+
     if env == "preprod":
         model_infos = Dict()
         if len(model_names) < 1:
@@ -173,7 +187,9 @@ def get_models_meta(
             )
             versions_list = get_subdirectories(path=model_path)
             model_infos[model_name]["version_list"] = sorted(
-                list(set(versions_list)), key=str, reverse=True
+                versions_list,
+                key=lambda x: [int(y) for y in x.split(".")],
+                reverse=True,
             )
             for version in versions_list:
                 model_version_info = Dict()
@@ -204,9 +220,9 @@ def get_models_meta(
                     model_infos[model_name][version]["size"] = human_readable_file_size(
                         get_size(version_files_path)
                     )
-                    model_infos[model_name][version][
-                        "push_date"
-                    ] = datetime.fromtimestamp(Path(version_files_path).stat().st_mtime)
+                    model_infos[model_name][version]["push_date"] = (
+                        datetime.fromtimestamp(Path(version_files_path).stat().st_mtime)
+                    )
 
         return model_infos
     storage_provider = StorageProvider(
@@ -256,7 +272,7 @@ def get_models_meta(
                     "current_page": page_index,
                     "has_previous": has_previous,
                     "has_next": has_next,
-                    "pages": page_list
+                    "pages": page_list,
                     # "ori_model_names":ori_model_names,
                     # "model_names":model_names,
                     # "pg2.offset":pg2.offset,
@@ -282,7 +298,9 @@ def get_models_meta(
                 model_infos["model_cnt"] += 1
             # print(asset_name, versions_list,storage_provider.get_versions_info(asset_name))
             model_infos[model_asset_name]["version_list"] = sorted(
-                list(set(versions_list)), key=str, reverse=True
+                versions_list,
+                key=lambda x: [int(y) for y in x.split(".")],
+                reverse=True,
             )
             max_version = "0.0"
             if len(versions_list) > 0:
@@ -337,9 +355,9 @@ def get_models_meta(
 
                     model_infos[model_asset_name][version]["size"] = "0 KB"
                     if os.path.exists(version_files_path):
-                        model_infos[model_asset_name][version][
-                            "size"
-                        ] = human_readable_file_size(get_size(version_files_path))
+                        model_infos[model_asset_name][version]["size"] = (
+                            human_readable_file_size(get_size(version_files_path))
+                        )
 
                     if f"config/server_{env}.yml" in model_version_info.get(
                         "contents", []

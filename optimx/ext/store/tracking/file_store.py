@@ -25,7 +25,7 @@ class FileStore:
         elif self.db_type == "diskcache":
             import diskcache as dc
 
-            db_store = dc.Cache(self.db_file)
+            db_store = dc.Cache(self.db_file, size_limit=int(100e9))
         elif self.db_type == "sfdb":
             db_store = Database(filename=self.db_file)
 

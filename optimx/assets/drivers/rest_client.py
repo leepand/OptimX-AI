@@ -2,9 +2,10 @@ import functools
 import requests
 import urllib.parse
 import os
-from optimx.config import MODEL_SERVER_HOST
+
 from optimx.utils.file_utils import fsync_open
 import optimx.ext.shellkit as sh
+from optimx.env import Config
 
 
 class SDK:
@@ -37,14 +38,17 @@ class SDK:
         return self.request("PUT", endpoint, **kwargs)
 
 
-model_host = MODEL_SERVER_HOST["host"]
-model_port = MODEL_SERVER_HOST["port"]
-host_defualt = f"http://{model_host}:{model_port}"
-
-
 class RestClient(SDK):
-    def __init__(self, host=host_defualt, name="models"):
-        super().__init__(host)
+    def __init__(self, host=None, name="models"):
+        # super().__init__(host)
+        if host is None:
+            config = Config()
+            model_host = config.get_local_model_host()
+            model_port = config.get_local_model_port()
+            self.host = f"http://{model_host}:{model_port}"
+        else:
+            self.host = host
+
         self.name = name
 
     def push(self, name, version, env, fnamelocal, filename):

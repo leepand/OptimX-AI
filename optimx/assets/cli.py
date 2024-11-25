@@ -33,10 +33,11 @@ from optimx.assets.errors import ObjectDoesNotExistError
 from optimx.assets.manager import AssetsManager
 from optimx.assets.remote import DriverNotInstalledError, StorageProvider
 from optimx.assets.settings import AssetSpec
-from optimx.utils.file_utils import data_dir
+
+# from optimx.utils.file_utils import data_dir
+from ..env import Config
 import optimx.ext.shellkit as sh
 from optimx.api import pull_assets
-from optimx.config import REMOTE_MODEL_SERVER, MODEL_SERVER_HOST
 
 
 @click.group("assets")
@@ -395,7 +396,8 @@ def push(name, filename, update, bump, toremote, profile, preview, newversion):
 
 def new_push(asset_path, asset_spec, storage_prefix, dry_run):
     _check_asset_file_number(asset_path)
-    bucket_name = data_dir()
+    config = Config()
+    bucket_name = config.get_base_model_path()
     sh.mkdir(bucket_name)
     provider = os.environ.get("OPTIMX_STORAGE_PROVIDER", "local")
     destination_provider = StorageProvider(
@@ -454,7 +456,8 @@ def update_push(
     asset_path, asset_spec, storage_prefix, bump_major, dry_run, newversion
 ):
     _check_asset_file_number(asset_path)
-    bucket_name = data_dir()
+    config = Config()
+    bucket_name = config.get_base_model_path()
     sh.mkdir(bucket_name)
     provider = os.environ.get("OPTIMX_STORAGE_PROVIDER", "local")
     destination_provider = StorageProvider(
@@ -566,7 +569,7 @@ def update_push(
     "--bucket",
     help="model repo base path",
     required=True,
-    default=data_dir(),
+    default=None,
     show_default=True,
 )
 @click.option(
@@ -580,6 +583,9 @@ def pull_code(name, profile, version, localdir, provider, bucket, team_repo_path
     """
     Pull model/version and code from remote repo to local repo.
     """
+    config = Config()
+    if bucket is None:
+        bucket = config.get_base_model_path()
     if provider == "local":
         pull_assets(
             name=name,
@@ -592,14 +598,11 @@ def pull_code(name, profile, version, localdir, provider, bucket, team_repo_path
         )
     else:
         if team_repo_path in ["cf", "df", "df2"]:
-            host = REMOTE_MODEL_SERVER[team_repo_path]
+            # host = REMOTE_MODEL_SERVER[team_repo_path]
+            host = config.get_model_server_url(server=team_repo_path)
             rest_client = RestClient(host=host)
         else:
-            model_host = MODEL_SERVER_HOST["host"]
-            model_port = MODEL_SERVER_HOST["port"]
-            host_defualt = f"http://{model_host}:{model_port}"
-            rest_client = RestClient()
-            host = host_defualt
+            raise ValueError("team_repo_path cannot be empty.")
 
         print("Destination assets provider:")
         print(f" - storage driver = `REST API`")
@@ -654,15 +657,13 @@ def pull_code(name, profile, version, localdir, provider, bucket, team_repo_path
 )
 def deploy(name, version, local_path, filename, team_repo_path):
     host = None
+    config = Config()
     if team_repo_path in ["cf", "df", "df2"]:
-        host = REMOTE_MODEL_SERVER[team_repo_path]
+        # host = REMOTE_MODEL_SERVER[team_repo_path]
+        host = config.get_model_server_url(server=team_repo_path)
         rest_client = RestClient(host=host)
     else:
-        model_host = MODEL_SERVER_HOST["host"]
-        model_port = MODEL_SERVER_HOST["port"]
-        host_defualt = f"http://{model_host}:{model_port}"
-        rest_client = RestClient()
-        host = host_defualt
+        raise ValueError("team_repo_path cannot be empty.")
 
     print("Destination assets provider:")
     print(f" - storage driver = `REST API`")

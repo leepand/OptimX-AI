@@ -14,8 +14,9 @@ from structlog import get_logger
 from optimx.envs import error
 from optimx.utils.colorize import colorize
 from optimx.ext.store.tracking import file_store
-from optimx.utils.file_utils import data_dir
+
 import optimx.ext.shellkit as sh
+from ..env import Config
 
 logger = get_logger(__name__)
 
@@ -160,7 +161,8 @@ def make(id=None, help: bool = False, **kwargs):
                     )
                     if help:
                         return
-                    base_path = data_dir()
+
+                    base_path = Config().get_base_model_path()
                     env = _kwargs.get("env", "dev")
                     db_name = _kwargs.get("db_name", "rlite_model.cache")
                     db_type = _kwargs.get("db_type", "rlite")

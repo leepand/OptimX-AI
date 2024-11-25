@@ -18,10 +18,10 @@ logger = get_logger(__name__)
 
 class ModelConfiguration(ModelkitSettings):
     model_type: Type[Asset]
-    asset: Optional[str]
-    env: Optional[str]
+    asset: Optional[str] = None
+    env: Optional[str] = None
     model_settings: Optional[Dict[str, Any]] = {}
-    model_dependencies: Optional[Dict[str, str]]
+    model_dependencies: Optional[Dict[str, str]] = {}
 
     model_config = pydantic.ConfigDict(protected_namespaces=("settings",))
 

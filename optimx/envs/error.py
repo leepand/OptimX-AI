@@ -1,4 +1,5 @@
 """Set of Error classes for optimx-envs."""
+
 import warnings
 
 

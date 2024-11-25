@@ -13,7 +13,7 @@ from optimx.core.types import LibraryModelsType
 import optimx.ext.shellkit as sh
 from optimx.assets.manager import AssetsManager
 from optimx.assets.remote import StorageProvider
-from optimx.utils.file_utils import data_dir
+from .env import Config
 
 logger = get_logger(__name__)
 
@@ -198,16 +198,13 @@ def create_optimx_app(models=None, required_models=None):
     return app
 
 
-home_data_path = data_dir()
-
-
 def pull_assets(
     name,
     env="dev",
     version=None,
     assets_dir=os.getcwd(),
     provider="local",
-    bucket=home_data_path,
+    bucket=None,
     force_download=False,
 ):
     """
@@ -226,6 +223,9 @@ def pull_assets(
         assets_info (dict): 拉取的资产信息。
 
     """
+    config = Config()
+    if bucket is None:
+        bucket = config.get_base_model_path()
     manager = AssetsManager(
         assets_dir=assets_dir,
         storage_provider=StorageProvider(

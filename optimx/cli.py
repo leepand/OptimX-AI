@@ -26,15 +26,11 @@ from optimx.utils.serialization import safe_np_dump
 
 import optimx.ext.shellkit as sh
 from optimx.ext import YAMLDataSet
-from optimx.config import (
-    SERVER_PORT_CONFIG,
-    MODEL_BASE_PATH,
-    MODEL_SERVER_HOST,
-    MAIN_SERVER_PORT,
-)
+
 from optimx.ext.prompts.prompt import create_template, readfile, PromptTemplate
 from optimx.utils.shell_utils import get_port_status, start_service
 from optimx.utils.killport import kill9_byport
+from .env import Config
 
 
 @click.group()
@@ -102,10 +98,10 @@ def memory(models, required_models):
     for k, (m, mc) in enumerate(stats.items()):
         table.add_row(
             m,
-            humanize.naturalsize(mc * 10 ** 6, format="%.2f"),
+            humanize.naturalsize(mc * 10**6, format="%.2f"),
             end_section=k == len(stats) - 1,
         )
-    table.add_row("Total", humanize.naturalsize(grand_total * 10 ** 6, format="%.2f"))
+    table.add_row("Total", humanize.naturalsize(grand_total * 10**6, format="%.2f"))
     console.print(table)
 
 
@@ -455,6 +451,7 @@ def init(project, model, version):
     sh.mkdir(f"{project_path}/config")
     sh.mkdir(f"{project_path}/notebooks")
     sh.mkdir(f"{project_path}/logs")
+    config = Config()
     with sh.cd(project_path):
         # 读取包中的文件内容-readme.md
         readme_contents = create_template(
@@ -496,9 +493,10 @@ def init(project, model, version):
         sh.write(reward_file_path, rewardserver_contents)
         sh.write(utils_file_path, readfile(sh, "utils.py"))
         c = YAMLDataSet(config_dev_meta_path)
-        c.save(SERVER_PORT_CONFIG)
+        server_config_template = config.get_server_config_template()
+        c.save(server_config_template)
         c_p = YAMLDataSet(config_prod_meta_path)
-        c_p.save(SERVER_PORT_CONFIG)
+        c_p.save(server_config_template)
 
         # read config.py
         config_contents = create_template(
@@ -535,8 +533,8 @@ def init(project, model, version):
     print(f"Project {project} is created!")
 
 
-model_host = MODEL_SERVER_HOST["host"]
-model_port = MODEL_SERVER_HOST["port"]
+# model_host = MODEL_SERVER_HOST["host"]
+# model_port = MODEL_SERVER_HOST["port"]
 
 
 @optimx_cli.command("run", no_args_is_help=True)
@@ -553,7 +551,7 @@ model_port = MODEL_SERVER_HOST["port"]
     "-h",
     help="host of model server service",
     type=str,
-    default=model_host,
+    default="0.0.0.0",
     show_default=True,
 )
 @click.option(
@@ -561,21 +559,26 @@ model_port = MODEL_SERVER_HOST["port"]
     "-p",
     help="port of  model server service",
     type=str,
-    default=model_port,
+    default=None,
     show_default=True,
 )
 @click.option(
     "--mainport",
     help="main service port",
     type=str,
-    default=MAIN_SERVER_PORT,
+    default=None,
     show_default=True,
 )
 def run(service, host, port, mainport):
     """
     start services: main/model server.
     """
-    base_path = MODEL_BASE_PATH
+    config = Config()
+    if port is None:
+        port = config.get_local_model_port()
+    base_path = config.get_base_model_path()
+    if mainport is None:
+        mainport = config.get_mlops_port()
 
     # start model server
     if service in ["model_server", "all"]:
